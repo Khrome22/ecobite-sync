@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Figtree, Geist_Mono, Instrument_Serif } from "next/font/google"
-import { Providers } from "@/components/providers"
+import { ClientRoot } from "@/components/client-root"
 import "./globals.css"
 
 const figtree = Figtree({
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`dark ${figtree.variable} ${instrument.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-dvh">
-        <Providers>{children}</Providers>
+        <ClientRoot>{children}</ClientRoot>
       </body>
     </html>
   )

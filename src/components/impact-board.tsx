@@ -45,7 +45,7 @@ export function ImpactBoard() {
         </p>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-3">
+      <section className="grid min-w-0 gap-3 md:grid-cols-3">
         <Stat label="Food kept out of the trash" value={formatKg(all.keptGrams)} detail={`${formatKg(all.wastedGrams)} tossed in the same stretch`} />
         <Stat label="Landfill methane avoided" value={formatCo2(all.co2eAvoided)} detail={`${formatCo2(all.co2eEmitted)} still emitted from what was tossed`} />
         <Stat label="Grocery money kept" value={formatMoney(all.usdKept)} detail={`${formatMoney(all.usdLost)} written off`} />
@@ -55,7 +55,7 @@ export function ImpactBoard() {
         Embodied in what you kept, not a credit: {formatCo2(all.embodiedCo2e)} CO2e on the farm and {formatWater(all.waterL)} of water. Those are footprints you put to use.
       </p>
 
-      <section className="rounded-3xl border border-border bg-card p-4 md:p-6">
+      <section className="min-w-0 rounded-3xl border border-border bg-card p-4 md:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="font-serif text-3xl">Kept versus tossed</h2>
@@ -77,7 +77,7 @@ export function ImpactBoard() {
           </div>
         </div>
         <div
-          className="mt-6 flex h-52 items-end gap-1.5"
+          className="mt-6 flex h-52 min-w-0 items-end gap-1.5"
           role="img"
           aria-label="Fourteen day chart of food kept versus food tossed"
         >
@@ -98,16 +98,16 @@ export function ImpactBoard() {
         </p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <div>
+      <section className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="min-w-0">
           <h2 className="mb-3 font-serif text-2xl">Latest events</h2>
           {recent.length === 0 ? (
             <p className="text-sm text-muted-foreground">Cook, claim, or toss something and it lands here.</p>
           ) : (
             <ul className="space-y-2">
               {recent.map((event) => (
-                <li key={event.id} className="flex items-baseline justify-between gap-3 rounded-2xl border border-border px-3 py-2 text-sm">
-                  <span>
+                <li key={event.id} className="flex min-w-0 items-baseline justify-between gap-3 rounded-2xl border border-border px-3 py-2 text-sm">
+                  <span className="min-w-0">
                     <span className={event.kind === "wasted" ? "text-coral" : "text-lime"}>{KIND[event.kind]}</span>
                     {" "}
                     {event.name}
@@ -119,12 +119,12 @@ export function ImpactBoard() {
             </ul>
           )}
         </div>
-        <div className="rounded-3xl border border-border p-4">
+        <div className="min-w-0 rounded-3xl border border-border p-4">
           <h2 className="font-serif text-2xl">The rollup</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Each cook, rescue, and toss is an event. The chart buckets them by day — the same query a Tiger Data continuous aggregate would keep warm, computed here in the browser. The Postgres shape lives in <code className="text-foreground">schema.sql</code>.
           </p>
-          <pre className="mt-4 overflow-auto rounded-xl bg-background/80 p-3 font-mono text-[11px] leading-relaxed text-moss">{`select
+          <pre className="mt-4 max-w-full overflow-x-auto rounded-xl bg-background/80 p-3 font-mono text-[11px] leading-relaxed text-moss">{`select
   time_bucket('1 day', time) as day,
   sum(grams) filter (where kind in ('cooked','rescued')) as grams_kept,
   sum(grams) filter (where kind = 'wasted') as grams_wasted,

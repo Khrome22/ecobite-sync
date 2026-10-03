@@ -257,25 +257,10 @@ function getClientSnapshot() {
   return readSnapshot()
 }
 
-function getServerSnapshot(): KitchenState | null {
-  return null
-}
-
 const KitchenContext = createContext<KitchenApi | null>(null)
 
-function BootScreen() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center px-6">
-      <div>
-        <p className="text-xs tracking-[0.22em] text-moss uppercase">EcoBite</p>
-        <p className="mt-3 font-serif text-4xl">Opening the Bursley fridge…</p>
-      </div>
-    </div>
-  )
-}
-
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const state = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot)
+  const state = useSyncExternalStore(subscribe, getClientSnapshot)
 
   useEffect(() => {
     const id = window.setInterval(tickRoom, 3000)
@@ -288,12 +273,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toast(state.toast.title, { description: state.toast.body })
   }, [state])
 
-  const value = useMemo<KitchenApi | null>(() => {
-    if (!state) return null
-    return { state, addDrafts, offer, claim, mark, logMeal, hostMeal, reset }
-  }, [state])
+  const value = useMemo<KitchenApi>(
+    () => ({ state, addDrafts, offer, claim, mark, logMeal, hostMeal, reset }),
+    [state],
+  )
 
-  if (!value) return <BootScreen />
   return <KitchenContext.Provider value={value}>{children}</KitchenContext.Provider>
 }
 

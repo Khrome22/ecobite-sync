@@ -142,7 +142,7 @@ export function ScanStudio() {
           ) : (
             <FridgeArt items={FRIDGE_SAMPLE.items} />
           )}
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="sticky bottom-[4.75rem] z-20 mt-4 flex flex-wrap gap-2 bg-card/95 py-2 backdrop-blur md:static md:bg-transparent md:py-0">
             <Button onClick={readSample} disabled={phase === "reading"} className="h-10">
               {phase === "reading" ? "Reading…" : mode === "receipt" ? "Read this receipt" : "Read this shelf"}
             </Button>
