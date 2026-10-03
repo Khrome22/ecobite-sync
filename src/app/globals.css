@@ -55,42 +55,42 @@
 
 :root,
 .dark {
-  --background: #121612;
-  --foreground: #f3efe4;
-  --card: #1b211c;
-  --card-foreground: #f3efe4;
-  --popover: #242b25;
-  --popover-foreground: #f3efe4;
-  --primary: #dff25a;
-  --primary-foreground: #17200c;
-  --secondary: #2a332b;
-  --secondary-foreground: #f3efe4;
-  --muted: #242b25;
-  --muted-foreground: #b7b3a6;
-  --accent: #2c362d;
-  --accent-foreground: #f3efe4;
-  --destructive: #ff6b45;
-  --border: rgba(243, 239, 228, 0.12);
-  --input: rgba(243, 239, 228, 0.16);
-  --ring: #dff25a;
-  --chart-1: #dff25a;
-  --chart-2: #ff6b45;
-  --chart-3: #f0b15a;
-  --chart-4: #9fbfa8;
-  --chart-5: #f3efe4;
-  --lime: #dff25a;
-  --coral: #ff6b45;
-  --amber: #f0b15a;
-  --moss: #9fbfa8;
-  --radius: 0.9rem;
-  --sidebar: #171c18;
-  --sidebar-foreground: #f3efe4;
-  --sidebar-primary: #dff25a;
-  --sidebar-primary-foreground: #17200c;
-  --sidebar-accent: #242b25;
-  --sidebar-accent-foreground: #f3efe4;
-  --sidebar-border: rgba(243, 239, 228, 0.12);
-  --sidebar-ring: #dff25a;
+  --background: #f7f4ec;
+  --foreground: #263746;
+  --card: #ffffff;
+  --card-foreground: #263746;
+  --popover: #fdfbf6;
+  --popover-foreground: #263746;
+  --primary: #3e7085;
+  --primary-foreground: #ffffff;
+  --secondary: #f3eee3;
+  --secondary-foreground: #29495c;
+  --muted: #f3eee3;
+  --muted-foreground: #8299a2;
+  --accent: #dceef1;
+  --accent-foreground: #31566a;
+  --destructive: #b85c4a;
+  --border: #ece8df;
+  --input: #ece8df;
+  --ring: #3e7085;
+  --chart-1: #3e7085;
+  --chart-2: #b85c4a;
+  --chart-3: #a27f63;
+  --chart-4: #69815d;
+  --chart-5: #29495c;
+  --lime: #3e7085;
+  --coral: #b85c4a;
+  --amber: #a27f63;
+  --moss: #69815d;
+  --radius: 1.15rem;
+  --sidebar: #fdfbf6;
+  --sidebar-foreground: #263746;
+  --sidebar-primary: #3e7085;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dceef1;
+  --sidebar-accent-foreground: #31566a;
+  --sidebar-border: #ece8df;
+  --sidebar-ring: #3e7085;
 }
 
 @layer base {
@@ -103,13 +103,13 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(900px 420px at 0% -10%, rgba(223, 242, 90, 0.07), transparent 55%),
-      radial-gradient(700px 380px at 100% 0%, rgba(255, 107, 69, 0.06), transparent 50%);
+      radial-gradient(900px 420px at 0% -10%, rgba(220, 238, 241, 0.9), transparent 55%),
+      radial-gradient(700px 380px at 100% 0%, rgba(243, 238, 227, 0.85), transparent 50%);
     background-attachment: fixed;
   }
   ::selection {
-    background: #dff25a;
-    color: #17200c;
+    background: #dceef1;
+    color: #29495c;
   }
 }
 
@@ -123,8 +123,8 @@
 }
 
 @keyframes livepulse {
-  0% { box-shadow: 0 0 0 0 rgba(223, 242, 90, 0.65); }
-  100% { box-shadow: 0 0 0 8px rgba(223, 242, 90, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(62, 112, 133, 0.45); }
+  100% { box-shadow: 0 0 0 8px rgba(62, 112, 133, 0); }
 }
 
 .live-dot {

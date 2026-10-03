@@ -986,13 +986,189 @@ export const RECIPES: Recipe[] = [
       },
     ],
   },
+  {
+    id: "pepper-eggs",
+    name: "Pepper and egg skillet",
+    minutes: 12,
+    servings: "1",
+    summary: "The pepper and the eggs, scrambled soft. Breakfast that uses two clocks at once.",
+    assumes: "Oil, salt, a fork.",
+    plate: "Soft scrambled eggs folded with sweet pepper strips.",
+    needs: [
+      { match: ["egg"], label: "Eggs" },
+      { match: ["pepper"], label: "Bell pepper" },
+      { match: ["sourdough", "bread", "tortilla"], label: "Bread", optional: true },
+    ],
+    subs: [
+      { hear: ["pepper"], line: "Onion, tomato, or spinach. Any vegetable that needs using." },
+      { hear: ["bread"], line: "Eat it from the pan." },
+    ],
+    steps: [
+      { title: "Slice and soften", say: "Oil in the pan, medium. Slice the pepper and soften it for three minutes.", detail: "Salt once it starts to smell sweet.", howMuch: "One pepper, a teaspoon of oil.", heat: "Medium.", timerSec: 180 },
+      { title: "Eggs in", say: "Beat two eggs with a pinch of salt and pour them over the pepper. Fold slowly until just set.", detail: "Pull the pan off if they look dry. Soft is the point.", howMuch: "Two eggs.", heat: "Medium-low.", timerSec: 120 },
+      { title: "Eat hot", say: "Onto toast if you have it. Pepper on top. Eat it while the eggs are still glossy.", detail: "This does not reheat well.", howMuch: "One slice of bread, optional." },
+    ],
+  },
+  {
+    id: "yogurt-bowl",
+    name: "Yogurt bowl",
+    minutes: 5,
+    servings: "1",
+    summary: "The yogurt, plus whatever fruit is closest to turning. No cooking.",
+    assumes: "A spoon. Salt if the yogurt is plain.",
+    plate: "A bowl of yogurt with fruit and a thread of honey if you have it.",
+    needs: [
+      { match: ["yogurt"], label: "Yogurt" },
+      { match: ["banana", "blueberry", "grape", "tomato"], label: "Fruit", optional: true },
+    ],
+    subs: [
+      { hear: ["banana", "berry", "grape", "fruit"], line: "Any soft fruit. Even a few cherry tomatoes, salted, if that is what you have." },
+    ],
+    steps: [
+      { title: "Spoon it out", say: "Empty the yogurt into a bowl. If it smells sharp or fizzy, toss it instead.", detail: "A clean sour smell is fine. Bubbles are not.", howMuch: "A cup, or whatever is left." },
+      { title: "Fruit on top", say: "Slice the fruit over the top. Banana coins, grapes halved, berries straight in.", detail: "A pinch of salt if the yogurt is plain.", howMuch: "A handful." },
+      { title: "Finish", say: "Pepper or cinnamon if you want it. Eat it now so the fruit doesn't weep into the bowl.", detail: "Five minutes, including the dishes.", howMuch: "One bowl." },
+    ],
+  },
+  {
+    id: "tomato-feta",
+    name: "Tomato and feta plate",
+    minutes: 8,
+    servings: "1",
+    summary: "Tomatoes that are softening, feta, oil, salt. A plate, not a project.",
+    assumes: "Olive oil or any oil, salt.",
+    plate: "Cut tomatoes, crumbled feta, oil, torn herbs.",
+    needs: [
+      { match: ["tomato"], label: "Tomatoes" },
+      { match: ["feta", "cheddar"], label: "Feta" },
+      { match: ["sourdough", "bread"], label: "Bread", optional: true },
+      { match: ["cilantro"], label: "Cilantro", optional: true },
+    ],
+    subs: [
+      { hear: ["feta", "cheese"], line: "Any salty cheese. Cheddar in small crumbles works." },
+      { hear: ["cilantro"], line: "Skip the herb, or use pepper." },
+    ],
+    steps: [
+      { title: "Cut the tomatoes", say: "Halve the tomatoes. Salt them and wait two minutes so they juice.", detail: "Soft ones are better here than firm ones.", howMuch: "The pint, or half if you're saving some.", timerSec: 120 },
+      { title: "Cheese and oil", say: "Crumble the feta over them. A spoon of oil. Tear the cilantro if you have it.", detail: "Bread on the side to catch the juice.", howMuch: "A chunk of feta, a spoon of oil." },
+      { title: "Eat at the counter", say: "Don't refrigerate this once it's dressed. Finish the plate.", detail: "The juice is the sauce.", howMuch: "All of it." },
+    ],
+  },
+  {
+    id: "cilantro-rice",
+    name: "Cilantro rice",
+    minutes: 12,
+    servings: "1",
+    summary: "Leftover rice and the cilantro that's wilting. Hot pan, so the rice is safe.",
+    assumes: "Oil, salt. The rice must have been kept cold.",
+    plate: "A scoop of fried rice, very green with cilantro.",
+    needs: [
+      { match: ["rice"], label: "Cooked rice" },
+      { match: ["cilantro"], label: "Cilantro" },
+      { match: ["egg"], label: "Egg", optional: true },
+      { match: ["lime"], label: "Lime", optional: true },
+    ],
+    subs: [
+      { hear: ["egg"], line: "Skip the egg. The rice and herbs are enough." },
+      { hear: ["lime"], line: "A splash of vinegar, or nothing." },
+      { hear: ["cilantro"], line: "Spinach torn in at the end, or any soft herb." },
+    ],
+    steps: [
+      { title: "Hot pan first", say: "Get the pan hot with a little oil. Cold rice goes in only when the pan is noisy.", detail: "If the rice smells sweet or sour, stop and toss it.", howMuch: "A teaspoon of oil.", heat: "Medium-high.", why: "Rice that sat out warm is not for this." },
+      { title: "Fry the rice", say: "Spread the rice and leave it a minute so it crackles. Then toss. Push it aside and scramble an egg in the gap if you have one.", detail: "Steam all the way through. No cool center.", howMuch: "The leftover bowl.", heat: "Medium-high.", timerSec: 180 },
+      { title: "Herbs off the heat", say: "Kill the heat. Stir in a handful of cilantro and a squeeze of lime. Salt. Eat it from the pan.", detail: "Herbs go in last so they stay bright.", howMuch: "A loose handful of cilantro." },
+    ],
+  },
+  {
+    id: "banana-toast",
+    name: "Banana on toast",
+    minutes: 7,
+    servings: "1",
+    summary: "Spotted bananas and the heel of bread. Salt and pepper, not sugar, if you want it savory.",
+    assumes: "A pan or a toaster.",
+    plate: "Toast, mashed banana, a pinch of salt.",
+    needs: [
+      { match: ["banana"], label: "Bananas" },
+      { match: ["sourdough", "bread", "tortilla"], label: "Bread" },
+      { match: ["yogurt"], label: "Yogurt", optional: true },
+    ],
+    subs: [
+      { hear: ["bread", "sourdough"], line: "Eat the banana with yogurt, or just the banana." },
+      { hear: ["yogurt"], line: "Skip it. Salt on the banana is enough." },
+    ],
+    steps: [
+      { title: "Toast the bread", say: "Toast the bread until it has color. Pale bread goes soggy under banana.", detail: "A dry pan works.", howMuch: "One or two slices.", heat: "Medium.", timerSec: 150 },
+      { title: "Mash", say: "Mash the banana on the toast. A pinch of salt. Yogurt on the side if the tub needs using.", detail: "Brown spots are ripe, not rotten. Mold is the line.", howMuch: "One banana." },
+      { title: "Eat it", say: "Eat it before you sit down to do something else. Mashed banana slumps.", detail: "That's the whole recipe.", howMuch: "All of it." },
+    ],
+  },
+  {
+    id: "warm-oat",
+    name: "Warm oat milk",
+    minutes: 6,
+    servings: "1",
+    summary: "The open carton, warmed with cinnamon if you have it. A small thing that uses the oat milk.",
+    assumes: "A saucepan or a mug and a microwave.",
+    plate: "A mug of warm oat milk.",
+    needs: [{ match: ["oat"], label: "Oat milk" }],
+    subs: [{ hear: ["cinnamon"], line: "Plain is fine. A pinch of salt wakes it up." }],
+    steps: [
+      { title: "Check the carton", say: "Smell the oat milk. Sour, slimy, or swollen means toss it.", detail: "Separation that stirs back in is normal.", howMuch: "A mug's worth." },
+      { title: "Warm it", say: "Warm it in a pan or a mug until it steams. Don't boil it hard or it splits.", detail: "Stir once.", howMuch: "One mug.", heat: "Low.", timerSec: 180 },
+      { title: "Drink it", say: "A pinch of salt or cinnamon. Drink it while it's warm.", detail: "Rinse the mug now.", howMuch: "The mug." },
+    ],
+  },
+  {
+    id: "broccoli-eggs",
+    name: "Broccoli and eggs",
+    minutes: 14,
+    servings: "1",
+    summary: "Broccoli from a receipt, chopped small, with eggs. Uses the crown before it yellows.",
+    assumes: "Oil, salt, a pan with a lid.",
+    plate: "Chopped broccoli with soft eggs.",
+    needs: [
+      { match: ["broccoli"], label: "Broccoli" },
+      { match: ["egg"], label: "Eggs", optional: true },
+    ],
+    subs: [
+      { hear: ["egg"], line: "No eggs: just salt and oil the broccoli and eat it with bread." },
+    ],
+    steps: [
+      { title: "Chop small", say: "Cut the broccoli into small pieces, stem included. Stem takes longer, so cut it thinner.", detail: "Yellow tips can be trimmed. Slimy pieces get tossed.", howMuch: "One crown." },
+      { title: "Steam-fry", say: "Oil, medium, broccoli in. A splash of water and a lid for four minutes.", detail: "You want tender, still green.", howMuch: "Two tablespoons of water.", heat: "Medium.", timerSec: 240 },
+      { title: "Eggs if you have them", say: "Push the broccoli aside, scramble an egg in the gap, then fold it through. Salt.", detail: "Eat it hot.", howMuch: "One or two eggs.", heat: "Medium." },
+    ],
+  },
+  {
+    id: "potato-skillet",
+    name: "Crisp potato skillet",
+    minutes: 20,
+    servings: "1",
+    summary: "Potatoes cut small and left alone in the pan until the edges brown.",
+    assumes: "Oil, salt. A wide pan.",
+    plate: "A pile of crisp little potatoes.",
+    needs: [
+      { match: ["potato"], label: "Potatoes" },
+      { match: ["egg"], label: "Egg", optional: true },
+      { match: ["pepper"], label: "Bell pepper", optional: true },
+    ],
+    subs: [
+      { hear: ["egg"], line: "Skip the egg. The potatoes are the meal." },
+      { hear: ["pepper"], line: "Onion, or nothing." },
+    ],
+    steps: [
+      { title: "Cut small", say: "Cut the potatoes into small cubes so they cook through. Dry them with a towel if they're wet.", detail: "Smaller than you think. Crowding the pan steams them.", howMuch: "One large potato, or a handful of small ones." },
+      { title: "Don't stir yet", say: "Oil, medium. Potatoes in a single layer. Leave them five minutes before the first stir.", detail: "Salt now.", howMuch: "A spoon of oil.", heat: "Medium.", timerSec: 300 },
+      { title: "Finish", say: "Stir, give them a few more minutes, then an egg on top if you want. Eat them hot.", detail: "Soft in the middle, brown at the edge.", howMuch: "One egg, optional.", heat: "Medium.", timerSec: 240 },
+    ],
+  },
 ]
 
 export function recipeById(id: string) {
   return RECIPES.find((recipe) => recipe.id === id) ?? null
 }
 
-export function rankRecipes(ingredients: Ingredient[], now: number, focus?: string | null) {
+export function scoreRecipes(ingredients: Ingredient[], now: number, focus?: string | null) {
   const active = ingredients.filter((item) => item.state === "stocked" || item.state === "offered")
   const needle = focus?.trim().toLowerCase() ?? ""
   return RECIPES.map((recipe) => {
@@ -1030,9 +1206,11 @@ export function rankRecipes(ingredients: Ingredient[], now: number, focus?: stri
       score,
       viable: hit === required.length && uses.length > 0,
     }
-  })
-    .filter((row) => row.viable)
-    .sort((a, b) => b.score - a.score)
+  }).sort((a, b) => Number(b.viable) - Number(a.viable) || b.score - a.score)
+}
+
+export function rankRecipes(ingredients: Ingredient[], now: number, focus?: string | null) {
+  return scoreRecipes(ingredients, now, focus).filter((row) => row.viable)
 }
 
 export function interpret(recipe: Recipe, step: Step, heard: string): CoachAction {

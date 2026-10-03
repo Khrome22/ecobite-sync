@@ -146,7 +146,7 @@ export function ScanStudio() {
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-4">
           {phase === "reading" && (
-            <span className="scanline pointer-events-none absolute right-4 left-4 z-10 h-0.5 bg-lime shadow-[0_0_16px_#dff25a]" />
+            <span className="scanline pointer-events-none absolute right-4 left-4 z-10 h-0.5 bg-lime shadow-[0_0_16px_rgba(62,112,133,0.35)]" />
           )}
           {mode === "list" ? (
             <div>
@@ -317,8 +317,8 @@ function ReceiptArt({ items }: { items: ParsedItem[] }) {
 
 function FridgeArt({ items }: { items: ParsedItem[] }) {
   return (
-    <div className="rounded-2xl bg-[#0e1412] p-4">
-      <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+    <div className="rounded-2xl bg-[#1c2824] p-4 text-[#f3efe4]">
+      <div className="mb-3 flex items-center justify-between text-xs text-[#b7c4c0]">
         <span>Door shelf</span>
         <span>3B</span>
       </div>

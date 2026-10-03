@@ -28,7 +28,7 @@ const NAV = [
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2.5">
-      <span className="grid size-8 place-items-center rounded-lg bg-lime text-sm font-semibold text-primary-foreground">
+      <span className="grid size-8 place-items-center rounded-2xl bg-[#b8dce4] text-sm font-semibold text-[#29495c]">
         E
       </span>
       <span className="leading-tight">

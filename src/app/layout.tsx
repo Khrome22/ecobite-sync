@@ -33,7 +33,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#121612",
+  themeColor: "#f7f4ec",
   width: "device-width",
   initialScale: 1,
 }
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`dark ${figtree.variable} ${instrument.variable} ${mono.variable} h-full antialiased`}
+      className={`${figtree.variable} ${instrument.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-dvh">
         <ClientRoot>{children}</ClientRoot>
