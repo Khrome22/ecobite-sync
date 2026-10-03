@@ -112,10 +112,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="md:pl-60">
-        <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-10">{children}</main>
+        <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-6 pb-32 md:px-8 md:py-8 md:pb-10">{children}</main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-background/95 px-1 py-1 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-background px-1 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] md:hidden">
         {NAV.map((item) => {
           const Icon = item.icon
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)

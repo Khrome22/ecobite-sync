@@ -72,7 +72,7 @@ The Impact page reads Postgres. Every log, cook, claim, and toss is a `waste_eve
 
 ## Tracks this is aimed at
 
-Sustainability, Actually Intelligent, Spacetime, ElevenLabs, Gemini, Tiger Data, Neon, and the dark dashboard for the design prize. One kitchen, not nine separate demos.
+Sustainability, Actually Intelligent, Spacetime, ElevenLabs, Gemini, Tiger Data, Neon, and a quiet cream-and-teal kitchen for the design prize. One kitchen, not nine separate demos.
 
 ## Scripts
 
