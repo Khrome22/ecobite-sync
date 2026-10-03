@@ -53,6 +53,7 @@ export function ScanStudio() {
     setPhase("reading")
     const body = new FormData()
     body.set("image", file)
+    body.set("mode", mode)
     try {
       const response = await fetch("/api/vision", { method: "POST", body })
       const data = (await response.json()) as {
@@ -63,11 +64,11 @@ export function ScanStudio() {
       if (!data.ok || !data.result) {
         setPhase("idle")
         setNote(
-          data.reason === "no-key"
-            ? "No Gemini key in this booth. Use a sample, or paste the receipt text — that parser runs on the phone."
-            : data.reason === "too-large"
-              ? "That photo is over 4 MB. Try a smaller one."
-              : "Couldn't read that photo. Try the sample shelf, or paste the text.",
+          data.reason === "too-large"
+            ? "That photo is over 4 MB. Try a smaller one."
+            : data.reason === "no-text"
+              ? "No grocery words showed up in that photo. A printed receipt works with no key. A picture of loose food, with nothing written on it, needs a Gemini API key so the model can see it."
+              : "Couldn't read that photo. Try a clearer picture, or type the list.",
         )
         return
       }
@@ -118,7 +119,7 @@ export function ScanStudio() {
         <p className="text-xs tracking-[0.2em] text-moss uppercase">Receipt, fridge, or a list</p>
         <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">Log what you have. Get a clock.</h1>
         <p className="mt-3 text-muted-foreground">
-          Photograph a receipt, photograph the fridge, or type the ingredients you have left. Each one gets a shelf-life estimate. Anything under 24 hours is broadcast to the floor when you log it.
+          Photograph a receipt, photograph the fridge, or type the ingredients you have left. Printed words on a photo are read on this machine, with no key. A Gemini key is only needed when the food itself has no label. Each item gets a shelf-life estimate, and anything under 24 hours is broadcast to the floor when you log it.
         </p>
       </header>
 

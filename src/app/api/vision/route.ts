@@ -1,4 +1,5 @@
 import { type Category, type ParseResult, type ParsedItem } from "@/lib/kitchen"
+import { itemsFromPrintedText, readPrintedText } from "@/lib/ocr"
 
 const CATEGORIES = new Set<Category>(["produce", "dairy", "protein", "grain", "other"])
 
@@ -48,26 +49,8 @@ function asItems(value: unknown): ParsedItem[] {
   })
 }
 
-export async function POST(request: Request) {
-  const key = process.env.GEMINI_API_KEY
-  if (!key) return Response.json({ ok: false, reason: "no-key" })
-
-  let file: File | null = null
-  try {
-    const form = await request.formData()
-    const image = form.get("image")
-    file = image instanceof File ? image : null
-  } catch {
-    return Response.json({ ok: false, reason: "bad-form" }, { status: 400 })
-  }
-  if (!file) return Response.json({ ok: false, reason: "no-image" }, { status: 400 })
-  if (file.size > 4_000_000) return Response.json({ ok: false, reason: "too-large" }, { status: 400 })
-  if (file.type && !file.type.startsWith("image/")) {
-    return Response.json({ ok: false, reason: "not-image" }, { status: 400 })
-  }
-
+async function readWithGemini(bytes: Buffer, type: string, key: string): Promise<ParseResult | null> {
   const model = process.env.GEMINI_MODEL || "gemini-2.5-flash"
-  const bytes = Buffer.from(await file.arrayBuffer())
   const upstream = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -83,7 +66,7 @@ export async function POST(request: Request) {
               { text: PROMPT },
               {
                 inline_data: {
-                  mime_type: file.type || "image/jpeg",
+                  mime_type: type || "image/jpeg",
                   data: bytes.toString("base64"),
                 },
               },
@@ -98,10 +81,7 @@ export async function POST(request: Request) {
     },
   )
 
-  if (!upstream.ok) {
-    const detail = (await upstream.text()).slice(0, 240)
-    return Response.json({ ok: false, reason: "upstream", detail }, { status: 502 })
-  }
+  if (!upstream.ok) return null
 
   const payload = (await upstream.json()) as {
     candidates?: { content?: { parts?: { text?: string }[] } }[]
@@ -112,17 +92,56 @@ export async function POST(request: Request) {
   try {
     parsed = JSON.parse(cleaned)
   } catch {
-    return Response.json({ ok: false, reason: "unreadable" }, { status: 422 })
+    return null
   }
   const items = asItems(parsed)
-  if (items.length === 0) return Response.json({ ok: false, reason: "empty" }, { status: 422 })
+  if (items.length === 0) return null
   const kind = (parsed as { kind?: string }).kind === "fridge" ? "fridge" : "receipt"
-  const result: ParseResult = {
+  return {
     kind,
     title: kind === "fridge" ? "Fridge photo" : "Receipt photo",
     place: "Gemini",
     model,
     items,
   }
-  return Response.json({ ok: true, result })
+}
+
+export async function POST(request: Request) {
+  let file: File | null = null
+  let mode: "receipt" | "fridge" = "receipt"
+  try {
+    const form = await request.formData()
+    const image = form.get("image")
+    file = image instanceof File ? image : null
+    if (form.get("mode") === "fridge") mode = "fridge"
+  } catch {
+    return Response.json({ ok: false, reason: "bad-form" }, { status: 400 })
+  }
+  if (!file) return Response.json({ ok: false, reason: "no-image" }, { status: 400 })
+  if (file.size > 4_000_000) return Response.json({ ok: false, reason: "too-large" }, { status: 400 })
+  if (file.type && !file.type.startsWith("image/")) {
+    return Response.json({ ok: false, reason: "not-image" }, { status: 400 })
+  }
+
+  const bytes = Buffer.from(await file.arrayBuffer())
+  const key = process.env.GEMINI_API_KEY
+  if (key) {
+    try {
+      const gemini = await readWithGemini(bytes, file.type || "image/jpeg", key)
+      if (gemini) return Response.json({ ok: true, result: gemini })
+    } catch (error) {
+      console.error("gemini vision failed", error)
+    }
+  }
+
+  try {
+    const text = await readPrintedText(bytes)
+    const printed = itemsFromPrintedText(text, mode)
+    if (printed) return Response.json({ ok: true, result: printed })
+  } catch (error) {
+    console.error("photo text read failed", error)
+    return Response.json({ ok: false, reason: "ocr-failed" }, { status: 500 })
+  }
+
+  return Response.json({ ok: false, reason: "no-text" })
 }

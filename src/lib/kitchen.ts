@@ -400,7 +400,7 @@ export function weekPair(events: ImpactEvent[], now = Date.now()) {
 }
 
 const CATALOG: (ParsedItem & { keys: string[] })[] = [
-  { keys: ["blueberry"], ticket: "BLUEBERRIES", name: "Blueberries", quantityLabel: "1 pint", grams: 170, category: "produce", hoursToExpire: 96, priceUsd: 3.99 },
+  { keys: ["blueberr"], ticket: "BLUEBERRIES", name: "Blueberries", quantityLabel: "1 pint", grams: 170, category: "produce", hoursToExpire: 96, priceUsd: 3.99 },
   { keys: ["tortilla"], ticket: "TORTILLAS", name: "Flour tortillas", quantityLabel: "8 count", grams: 320, category: "grain", hoursToExpire: 120, priceUsd: 2.49 },
   { keys: ["lime"], ticket: "LIMES", name: "Limes", quantityLabel: "3", grams: 180, category: "produce", hoursToExpire: 168, priceUsd: 1.29 },
   { keys: ["cheddar", "cheese"], ticket: "CHEDDAR", name: "Cheddar", quantityLabel: "8 oz", grams: 227, category: "dairy", hoursToExpire: 336, priceUsd: 4.29 },
