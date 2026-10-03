@@ -38,13 +38,17 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+const themeBoot = `(function(){try{if(localStorage.getItem("ecobite-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}})()`
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${figtree.variable} ${instrument.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-dvh">
+        <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
         <ClientRoot>{children}</ClientRoot>
       </body>
     </html>

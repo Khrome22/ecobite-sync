@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { YOU } from "@/lib/kitchen"
 import { useKitchen } from "@/lib/store"
 import { cn } from "@/lib/utils"
@@ -100,15 +101,21 @@ export function Shell({ children }: { children: React.ReactNode }) {
               {YOU.dorm} {YOU.room}
             </p>
           </div>
-          <Button variant="ghost" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => setOpen(true)}>
-            Reset demo kitchen
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => setOpen(true)}>
+              Reset demo kitchen
+            </Button>
+          </div>
         </div>
       </aside>
 
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/85 px-4 py-3 backdrop-blur md:hidden">
         <Logo />
-        <LivePill count={openCount} />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <LivePill count={openCount} />
+        </div>
       </header>
 
       <div className="md:pl-60">

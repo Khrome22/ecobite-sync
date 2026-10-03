@@ -21,7 +21,7 @@ Booth mode needs no API keys. Copy `.env.example` to `.env.local` and fill in ke
 | `ELEVENLABS_API_KEY` | The voice chef speaks with ElevenLabs Flash instead of the browser voice. |
 | `ELEVENLABS_VOICE_ID` | Optional. Defaults to Rachel (`21m00Tcm4TlvDq8ikWAM`). |
 
-The sidebar says which path is live.
+The sidebar says which path is live. **Dark** in the sidebar (and in the phone header) switches to the night palette. The choice stays in this browser.
 
 ## Add API keys
 

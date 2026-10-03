@@ -1,6 +1,6 @@
 export function Plate({ id }: { id: string }) {
   return (
-    <div className="mx-auto grid size-40 place-items-center rounded-full bg-[#eaf5f6] shadow-[inset_0_0_0_10px_#f3eee3] lg:size-52" aria-hidden>
+    <div className="mx-auto grid size-40 place-items-center rounded-full bg-[#eaf5f6] shadow-[inset_0_0_0_10px_#f3eee3] lg:size-52 dark:bg-[#1e3338] dark:shadow-[inset_0_0_0_10px_#162226]" aria-hidden>
       {id === "shakshuka" && (
         <div className="relative size-28 rounded-full bg-[#c4452d] lg:size-36">
           <span className="absolute top-5 left-5 size-8 rounded-full bg-[#f4e7c8]" />
