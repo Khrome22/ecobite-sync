@@ -49,8 +49,12 @@ function asItems(value: unknown): ParsedItem[] {
   })
 }
 
-async function readWithGemini(bytes: Buffer, type: string, key: string): Promise<ParseResult | null> {
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash"
+async function readWithGemini(
+  bytes: Buffer,
+  type: string,
+  key: string,
+): Promise<{ ok: true; result: ParseResult } | { ok: false; reason: "gemini-key" | "gemini-quota" | "gemini-failed" | "empty" }> {
+  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash"
   const upstream = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -81,7 +85,18 @@ async function readWithGemini(bytes: Buffer, type: string, key: string): Promise
     },
   )
 
-  if (!upstream.ok) return null
+  if (!upstream.ok) {
+    const detail = (await upstream.text()).slice(0, 180)
+    const safe = detail.replace(/AIza[\w-]+|AQ\.[\w.-]+/g, "[key]")
+    console.error("gemini vision", upstream.status, safe)
+    if (upstream.status === 401 || upstream.status === 403 || /api key/i.test(safe)) {
+      return { ok: false, reason: "gemini-key" }
+    }
+    if (upstream.status === 429 || /quota/i.test(safe)) {
+      return { ok: false, reason: "gemini-quota" }
+    }
+    return { ok: false, reason: "gemini-failed" }
+  }
 
   const payload = (await upstream.json()) as {
     candidates?: { content?: { parts?: { text?: string }[] } }[]
@@ -92,17 +107,20 @@ async function readWithGemini(bytes: Buffer, type: string, key: string): Promise
   try {
     parsed = JSON.parse(cleaned)
   } catch {
-    return null
+    return { ok: false, reason: "gemini-failed" }
   }
   const items = asItems(parsed)
-  if (items.length === 0) return null
+  if (items.length === 0) return { ok: false, reason: "empty" }
   const kind = (parsed as { kind?: string }).kind === "fridge" ? "fridge" : "receipt"
   return {
-    kind,
-    title: kind === "fridge" ? "Fridge photo" : "Receipt photo",
-    place: "Gemini",
-    model,
-    items,
+    ok: true,
+    result: {
+      kind,
+      title: kind === "fridge" ? "Fridge photo" : "Receipt photo",
+      place: "Gemini",
+      model,
+      items,
+    },
   }
 }
 
@@ -125,23 +143,32 @@ export async function POST(request: Request) {
 
   const bytes = Buffer.from(await file.arrayBuffer())
   const key = process.env.GEMINI_API_KEY
+  let geminiReason: "gemini-key" | "gemini-quota" | "gemini-failed" | "empty" | null = null
   if (key) {
     try {
       const gemini = await readWithGemini(bytes, file.type || "image/jpeg", key)
-      if (gemini) return Response.json({ ok: true, result: gemini })
+      if (gemini.ok) return Response.json({ ok: true, result: gemini.result })
+      geminiReason = gemini.reason
     } catch (error) {
       console.error("gemini vision failed", error)
+      geminiReason = "gemini-failed"
     }
   }
 
-  try {
-    const text = await readPrintedText(bytes)
-    const printed = itemsFromPrintedText(text, mode)
-    if (printed) return Response.json({ ok: true, result: printed })
-  } catch (error) {
-    console.error("photo text read failed", error)
-    return Response.json({ ok: false, reason: "ocr-failed" }, { status: 500 })
+  if (mode === "receipt" || !key || geminiReason) {
+    try {
+      const text = await readPrintedText(bytes)
+      const printed = itemsFromPrintedText(text, mode)
+      if (printed) return Response.json({ ok: true, result: printed })
+    } catch (error) {
+      console.error("photo text read failed", error)
+      if (!geminiReason) return Response.json({ ok: false, reason: "ocr-failed" }, { status: 500 })
+    }
   }
 
+  if (geminiReason === "gemini-quota") return Response.json({ ok: false, reason: "gemini-quota" })
+  if (geminiReason === "gemini-key") return Response.json({ ok: false, reason: "gemini-key" })
+  if (geminiReason === "gemini-failed") return Response.json({ ok: false, reason: "gemini-failed" })
+  if (geminiReason === "empty") return Response.json({ ok: false, reason: "empty" })
   return Response.json({ ok: false, reason: "no-text" })
 }

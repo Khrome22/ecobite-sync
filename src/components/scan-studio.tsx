@@ -66,9 +66,17 @@ export function ScanStudio() {
         setNote(
           data.reason === "too-large"
             ? "That photo is over 4 MB. Try a smaller one."
-              : data.reason === "no-text"
-              ? "No grocery names survived the read. Weight, tax, and cash lines are ignored. A Gemini API key is what reads a messy receipt or a fridge photo with no labels."
-              : "Couldn't read that photo. Try a clearer picture, or type the list.",
+            : data.reason === "gemini-key"
+              ? "Gemini rejected the API key. Check GEMINI_API_KEY in .env.local, save it, and restart the dev server."
+              : data.reason === "gemini-quota"
+                ? "This Gemini key is out of quota, so the fridge photo was not read. In Google AI Studio, check that key's quota or billing, then try the photo again. A printed receipt still reads without Gemini."
+                : data.reason === "gemini-failed"
+                ? "Gemini didn't answer for that photo. Try a brighter shot of the shelf."
+                : data.reason === "empty"
+                  ? "Gemini looked at the photo and didn't find food. Move closer so the items fill the frame."
+                  : data.reason === "no-text"
+                    ? "No grocery names survived the read. A fridge photo with no labels needs Gemini, and the dev server has to be restarted after you save the key."
+                    : "Couldn't read that photo. Try a clearer picture, or type the list.",
         )
         return
       }

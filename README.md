@@ -17,7 +17,7 @@ Booth mode needs no API keys. Copy `.env.example` to `.env.local` and fill in ke
 
 | Variable | What it turns on |
 | --- | --- |
-| `GEMINI_API_KEY` | Sees food in a photo even when nothing is printed. Printed receipts are read without this key. Model defaults to `gemini-2.5-flash`. |
+| `GEMINI_API_KEY` | Sees food in a photo even when nothing is printed. Printed receipts are read without this key. Model defaults to `gemini-3.8-flash`. |
 | `ELEVENLABS_API_KEY` | The voice chef speaks with ElevenLabs Flash instead of the browser voice. |
 | `ELEVENLABS_VOICE_ID` | Optional. Defaults to Rachel (`21m00Tcm4TlvDq8ikWAM`). |
 
@@ -29,7 +29,7 @@ Create `.env.local` next to `package.json`. It stays on your machine and is not 
 
 ```bash
 GEMINI_API_KEY=your_gemini_key
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.8-flash
 ELEVENLABS_API_KEY=your_elevenlabs_key
 ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
 ```
