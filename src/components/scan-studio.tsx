@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import {
   FRIDGE_SAMPLE,
+  LIST_SAMPLE,
   PASTE_SAMPLE,
   RECEIPT_SAMPLE,
+  URGENT_HOURS,
+  parsePantryList,
   parseReceiptText,
   type ParseResult,
   type ParsedItem,
@@ -14,7 +17,7 @@ import {
 import { useKitchen } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
-type Mode = "receipt" | "fridge"
+type Mode = "receipt" | "fridge" | "list"
 
 export function ScanStudio() {
   const { addDrafts } = useKitchen()
@@ -112,20 +115,22 @@ export function ScanStudio() {
   return (
     <div className="space-y-6">
       <header className="max-w-2xl">
-        <p className="text-xs tracking-[0.2em] text-moss uppercase">Receipt and fridge</p>
-        <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">Point it at the food. Get a clock.</h1>
+        <p className="text-xs tracking-[0.2em] text-moss uppercase">Receipt, fridge, or a list</p>
+        <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">Log what you have. Get a clock.</h1>
         <p className="mt-3 text-muted-foreground">
-          A receipt becomes a shelf with expiration estimates. A fridge photo does the same for what’s already open.
-          Samples run without a network so a demo doesn’t die on booth wifi.
+          Photograph a receipt, photograph the fridge, or type the ingredients you have left. Each one gets a shelf-life estimate. Anything under 24 hours is broadcast to the floor when you log it.
         </p>
       </header>
 
-      <div className="flex gap-2">
-        <Button variant={mode === "receipt" ? "default" : "outline"} onClick={() => { setMode("receipt"); setPhase("idle"); setResult(null) }}>
-          Receipt
+      <div className="flex flex-wrap gap-2">
+        <Button variant={mode === "receipt" ? "default" : "outline"} onClick={() => { setMode("receipt"); setPhase("idle"); setResult(null); setNote("") }}>
+          Receipt photo
         </Button>
-        <Button variant={mode === "fridge" ? "default" : "outline"} onClick={() => { setMode("fridge"); setPhase("idle"); setResult(null) }}>
-          Fridge shelf
+        <Button variant={mode === "fridge" ? "default" : "outline"} onClick={() => { setMode("fridge"); setPhase("idle"); setResult(null); setNote("") }}>
+          Fridge photo
+        </Button>
+        <Button variant={mode === "list" ? "default" : "outline"} onClick={() => { setMode("list"); setPhase("idle"); setResult(null); setNote("") }}>
+          List what&apos;s left
         </Button>
       </div>
 
@@ -134,7 +139,44 @@ export function ScanStudio() {
           {phase === "reading" && (
             <span className="scanline pointer-events-none absolute right-4 left-4 z-10 h-0.5 bg-lime shadow-[0_0_16px_#dff25a]" />
           )}
-          {preview ? (
+          {mode === "list" ? (
+            <div>
+              <h2 className="font-serif text-2xl">One ingredient a line</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Amounts are optional. “Cooked rice” and “half a bunch of cilantro” are enough.
+              </p>
+              <Textarea
+                value={paste}
+                onChange={(event) => setPaste(event.target.value)}
+                placeholder={LIST_SAMPLE}
+                className="mt-3 min-h-48 font-mono"
+              />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => setPaste(LIST_SAMPLE)}>
+                  Fill the sample
+                </Button>
+                <Button
+                  onClick={() => {
+                    const parsed = parsePantryList(paste)
+                    setPreview(null)
+                    setAdded(false)
+                    if (parsed.items.length === 0) {
+                      setResult(null)
+                      setPhase("idle")
+                      setNote("Nothing to estimate. Put one ingredient on each line.")
+                      return
+                    }
+                    setNote("")
+                    setResult(parsed)
+                    setPhase("ready")
+                  }}
+                  disabled={!paste.trim() || phase === "reading"}
+                >
+                  Estimate shelf life
+                </Button>
+              </div>
+            </div>
+          ) : preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="Upload preview" className="max-h-80 w-full rounded-2xl object-contain" />
           ) : mode === "receipt" ? (
@@ -142,6 +184,7 @@ export function ScanStudio() {
           ) : (
             <FridgeArt items={FRIDGE_SAMPLE.items} />
           )}
+          {mode !== "list" && (
           <div className="sticky bottom-[4.75rem] z-20 mt-4 flex flex-wrap gap-2 bg-card/95 py-2 backdrop-blur md:static md:bg-transparent md:py-0">
             <Button onClick={readSample} disabled={phase === "reading"} className="h-10">
               {phase === "reading" ? "Reading…" : mode === "receipt" ? "Read this receipt" : "Read this shelf"}
@@ -157,6 +200,7 @@ export function ScanStudio() {
               />
             </label>
           </div>
+          )}
           {note && <p className="mt-3 text-sm text-amber">{note}</p>}
         </div>
 
@@ -164,7 +208,7 @@ export function ScanStudio() {
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="font-serif text-2xl">Structured read</h2>
             <p className="text-xs text-muted-foreground">
-              {result ? (result.model === "booth-sample" || result.model === "local-receipt-parser" ? result.model : "Gemini") : "Waiting"}
+              {result ? result.model : "Waiting"}
             </p>
           </div>
           {phase === "reading" && <p className="mt-6 text-sm text-muted-foreground">Pulling line items and estimating shelf life…</p>}
@@ -189,13 +233,14 @@ export function ScanStudio() {
                     </span>
                     <span className="text-right font-mono text-xs">
                       {item.hoursToExpire}h
+                      {item.hoursToExpire < URGENT_HOURS && <span className="block text-coral">Floor</span>}
                       <span className="block text-muted-foreground">${item.priceUsd.toFixed(2)}</span>
                     </span>
                   </li>
                 ))}
               </ul>
               <Button className="mt-4 h-10" onClick={addAll} disabled={added}>
-                {added ? "On your shelf" : `Add ${result.items.length} to the kitchen`}
+                {added ? "Logged" : `Log ${result.items.length}`}
               </Button>
               <pre className="mt-4 max-h-48 overflow-auto rounded-xl bg-background/70 p-3 font-mono text-[11px] leading-relaxed text-moss">
                 {json}
@@ -205,6 +250,7 @@ export function ScanStudio() {
         </div>
       </div>
 
+      {mode === "receipt" && (
       <section className="rounded-3xl border border-border p-4">
         <h2 className="font-serif text-2xl">Or paste the receipt</h2>
         <p className="mt-1 text-sm text-muted-foreground">One item a line. A price at the end helps. This path never calls Gemini.</p>
@@ -223,6 +269,7 @@ export function ScanStudio() {
           </Button>
         </div>
       </section>
+      )}
     </div>
   )
 }

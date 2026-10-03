@@ -49,7 +49,7 @@ export function Kitchen() {
           </h1>
           <p className="mt-3 max-w-xl text-base text-muted-foreground">
             {critical.length > 0
-              ? `${formatMoney(atRisk)} still edible on your shelf. Offer what you won't cook. The floor updates live.`
+              ? `${formatMoney(atRisk)} still edible on your shelf. Anything under 24 hours is already on the floor, and the floor updates live.`
               : "The shelf is calm. Scan a haul when you shop, or take something off the floor."}
           </p>
         </div>

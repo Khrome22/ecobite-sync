@@ -1,8 +1,8 @@
--- EcoBite storage shape.
--- Neon holds the relational kitchen. Tiger Data (Timescale) holds the event stream.
--- The demo computes the same daily rollup in the browser so judges can use it
--- with no database credentials. Point DATABASE_URL at Neon and run this there
--- when you want the cloud copy.
+-- EcoBite storage shape for Tiger Data / Neon.
+-- The running demo writes the same waste_events rows to local Postgres
+-- (PGlite, on disk under data/pglite) and the Impact page reads them back.
+-- This file is what you run on Tiger Data: a hypertable plus a continuous
+-- aggregate. The booth query uses date_trunc instead of time_bucket.
 
 create extension if not exists timescaledb;
 

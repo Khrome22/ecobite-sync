@@ -385,6 +385,11 @@ export function VoiceChef() {
                 {step.say}
               </p>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{step.detail}</p>
+              {!started && (
+                <p className="mt-4 max-w-xl text-sm text-muted-foreground">
+                  Start once, then keep your hands on the food. It reads the step and listens after each line. Ask how much, how hot, why, or name an ingredient you don&apos;t have. ElevenLabs speaks when a key is set; otherwise this browser does.
+                </p>
+              )}
 
               {!started ? (
                 <Button

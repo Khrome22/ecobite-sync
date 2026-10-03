@@ -416,6 +416,8 @@ const CATALOG: (ParsedItem & { keys: string[] })[] = [
   { keys: ["banana"], ticket: "BANANAS", name: "Bananas", quantityLabel: "a bunch", grams: 400, category: "produce", hoursToExpire: 48, priceUsd: 1.2 },
   { keys: ["avocado"], ticket: "AVOCADO", name: "Avocado", quantityLabel: "2", grams: 280, category: "produce", hoursToExpire: 48, priceUsd: 2.5 },
   { keys: ["oat milk"], ticket: "OAT MILK", name: "Oat milk", quantityLabel: "carton", grams: 1000, category: "other", hoursToExpire: 168, priceUsd: 3.99 },
+  { keys: ["cooked rice", "rice"], ticket: "RICE", name: "Cooked rice", quantityLabel: "leftover bowl", grams: 400, category: "grain", hoursToExpire: 18, priceUsd: 1.1, safety: "Only if it was refrigerated. Get it steaming hot all the way through.", note: "Leftovers. Eat it today." },
+  { keys: ["cucumber"], ticket: "CUCUMBER", name: "Cucumber", quantityLabel: "1", grams: 200, category: "produce", hoursToExpire: 120, priceUsd: 0.99 },
   { keys: ["hummus"], ticket: "HUMMUS", name: "Hummus", quantityLabel: "tub", grams: 280, category: "other", hoursToExpire: 120, priceUsd: 3.49 },
   { keys: ["salsa"], ticket: "SALSA", name: "Salsa", quantityLabel: "jar", grams: 400, category: "produce", hoursToExpire: 240, priceUsd: 2.99 },
 ]
@@ -477,6 +479,77 @@ export function parseReceiptText(text: string): ParseResult {
   }
 }
 
+function longestKey(entry: { keys: string[] }) {
+  return Math.max(...entry.keys.map((key) => key.length))
+}
+
+function guessShelf(lower: string): { category: Category; hours: number; grams: number } {
+  if (/\b(chicken|beef|pork|turkey|fish|shrimp|salmon|meat|tofu)\b/.test(lower)) {
+    return { category: "protein", hours: 36, grams: 300 }
+  }
+  if (/\b(milk|yogurt|cheese|butter|cream)\b/.test(lower)) {
+    return { category: "dairy", hours: 120, grams: 250 }
+  }
+  if (/\b(bread|rice|pasta|noodle|tortilla|oat|quinoa)\b/.test(lower)) {
+    return { category: "grain", hours: /\b(cooked|leftover)\b/.test(lower) ? 18 : 96, grams: 300 }
+  }
+  if (/\b(lettuce|spinach|herb|cilantro|basil|berry|banana|avocado|tomato|pepper|onion|lime|lemon)\b/.test(lower)) {
+    return { category: "produce", hours: /\b(herb|cilantro|basil|spinach|lettuce)\b/.test(lower) ? 36 : 72, grams: 180 }
+  }
+  return { category: "other", hours: 72, grams: 150 }
+}
+
+function tightenHours(line: string, hours: number) {
+  const lower = line.toLowerCase()
+  if (/\b(leftover|opened|cooked|wilting)\b/.test(lower)) return Math.max(4, Math.min(hours, 18))
+  if (/\bhalf\b/.test(lower)) return Math.max(4, Math.min(hours, 36))
+  return hours
+}
+
+export function parsePantryList(text: string): ParseResult {
+  const items: ParsedItem[] = []
+  const ranked = [...CATALOG].sort((a, b) => longestKey(b) - longestKey(a))
+  for (const raw of text.split(/\n+/)) {
+    const line = raw.replace(/\s+/g, " ").replace(/^[-*•]\s*/, "").trim()
+    if (!line || !/[a-z]/i.test(line)) continue
+    const lower = line.toLowerCase()
+    const known = ranked.find((entry) => entry.keys.some((key) => lower.includes(key)))
+    if (known) {
+      items.push({
+        ticket: known.ticket,
+        name: known.name,
+        quantityLabel: /^\d/.test(line) ? line.split(/\s+/).slice(0, 2).join(" ") : known.quantityLabel,
+        grams: known.grams,
+        category: known.category,
+        hoursToExpire: tightenHours(line, known.hoursToExpire),
+        priceUsd: known.priceUsd,
+        note: known.note,
+        safety: known.safety,
+      })
+      continue
+    }
+    const cleaned = toTitle(line.replace(/[^a-z0-9 ]/gi, " ")).replace(/\s+/g, " ").trim()
+    if (cleaned.length < 3) continue
+    const guess = guessShelf(lower)
+    items.push({
+      ticket: cleaned.toUpperCase(),
+      name: cleaned,
+      quantityLabel: "1",
+      grams: guess.grams,
+      category: guess.category,
+      hoursToExpire: tightenHours(line, guess.hours),
+      priceUsd: 2,
+    })
+  }
+  return {
+    kind: "paste",
+    title: "What you have left",
+    place: "Typed list",
+    model: "shelf-life estimate",
+    items,
+  }
+}
+
 export const RECEIPT_SAMPLE: ParseResult = {
   kind: "receipt",
   title: "Lucky Market",
@@ -510,6 +583,14 @@ TORTILLAS 2.49
 LIMES 1.29
 CHEDDAR 4.29
 CHICKEN THIGHS 6.49`
+
+export const LIST_SAMPLE = `half a bunch of cilantro
+cherry tomatoes
+cooked rice from Tuesday
+2 eggs
+oat milk`
+
+export const URGENT_HOURS = 24
 
 export const RECIPES: Recipe[] = [
   {
@@ -1089,9 +1170,45 @@ export function applyScript(state: KitchenState, step: ScriptStep, now = Date.no
   }
 }
 
+export function publishUrgent(state: KitchenState, now = Date.now(), options?: { silent?: boolean }): KitchenState {
+  const due = state.ingredients.filter((item) => {
+    if (item.state !== "stocked" || item.source === "rescue") return false
+    if (item.expiresAt - now >= URGENT_HOURS * HOUR) return false
+    return !state.rescues.some((rescue) => rescue.ingredientId === item.id && !rescue.claimedBy)
+  })
+  if (due.length === 0) return state
+  const posts: Rescue[] = due.map((item) => ({
+    id: `post-${item.id}`,
+    ingredientId: item.id,
+    name: item.name,
+    quantityLabel: item.quantityLabel,
+    grams: item.grams,
+    category: item.category,
+    priceUsd: item.priceUsd,
+    expiresAt: item.expiresAt,
+    poster: YOU.name,
+    at: now,
+    note: "Under 24 hours on my shelf. Take it if you'll cook it.",
+    safety: item.safety,
+  }))
+  const ids = new Set(due.map((item) => item.id))
+  return {
+    ...state,
+    ingredients: state.ingredients.map((item) => (ids.has(item.id) ? { ...item, state: "offered" as const } : item)),
+    rescues: [...posts, ...state.rescues],
+    toast: options?.silent
+      ? state.toast
+      : {
+          id: uid("broadcast"),
+          title: due.length === 1 ? `${due[0].name} is on the floor` : `${due.length} things under 24 hours are on the floor`,
+          body: "Bursley 3 can claim them.",
+        },
+  }
+}
+
 export function createInitial(): KitchenState {
   const now = Date.now()
-  return {
+  const opening: KitchenState = {
     version: STATE_VERSION,
     hosting: false,
     scriptIndex: 0,
@@ -1230,6 +1347,7 @@ export function createInitial(): KitchenState {
       }),
     ],
   }
+  return publishUrgent(opening, now, { silent: true })
 }
 
 export function keepDemoAlive(state: KitchenState, now = Date.now()): KitchenState {

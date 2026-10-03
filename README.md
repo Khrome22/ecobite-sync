@@ -25,23 +25,24 @@ The sidebar says which path is live.
 
 ## Ninety-second demo
 
-1. **Kitchen.** Three or more clocks are under 24 hours. Tonight’s cook is already picked from whatever dies first.
-2. **Start hands-free** on the shakshuka. Tap Start so the browser is allowed to talk. Say “next”, or press Space. Ask “what if I don’t have feta?”
-3. **Rescue.** Claim Sam’s bananas. Within about a minute, Jordan, Mina, Alex, and Sam post on their own. Host the 9:15 skillet.
-4. **Impact.** Today’s bar starts empty. After a claim or a logged meal, it grows. The three headlines are food kept, landfill methane avoided, and money kept.
-5. **Scan.** Read the Lucky Market receipt (or paste the text). Add it. The chicken thighs show up on the shelf with a 36-hour clock, and Cook re-ranks.
+1. **Scan.** List what’s left (or read the receipt / fridge sample, or upload a photo if Gemini is keyed). Each line gets an expiration estimate. Log it. Cooked rice is under 24 hours, so it shows up on the floor by itself.
+2. **Kitchen.** The shelf clocks are live. Tonight’s cook is already picked from whatever dies first.
+3. **Start hands-free** on the shakshuka. Tap Start so the browser is allowed to talk. Say “next”, or press Space. Ask “what if I don’t have feta?” ElevenLabs speaks when `ELEVENLABS_API_KEY` is set.
+4. **Rescue.** Your under-24-hour food is already broadcast. Claim Sam’s bananas — a second screen on the same server sees the claim immediately. Within about a minute, Jordan, Mina, Alex, and Sam post on their own. Host the 9:15 skillet.
+5. **Impact.** Postgres rolls `waste_events` into logged versus wasted, carbon avoided, water saved, and money preserved. Today’s bar fills when you log, cook, claim, or toss.
 
 Reset the demo kitchen from the sidebar between rehearsals. If you leave and come back after the clocks have died, they shift forward so the opening scene is still urgent. Cooked meals stay cooked.
 
 ## What the numbers mean
 
-Eating groceries you already bought does not undo the farm. EcoBite does not take credit for that.
+The Impact page reads Postgres. Every log, cook, claim, and toss is a `waste_events` row, and the chart is the daily `GROUP BY`.
 
-- **Food kept** and **money kept** are the groceries that were cooked or claimed instead of tossed.
-- **Landfill methane avoided** uses 0.58 kg CO2e per kg of food, in the range of EPA WARM for landfilled food.
-- Farm CO2e and water are shown underneath as footprint you put to use, following the order of magnitude in Poore & Nemecek (2018) and Mekonnen & Hoekstra (2011). They are not “saved.”
+- **Logged versus wasted** is grams that entered the kitchen against grams that were tossed.
+- **Carbon emissions avoided** uses 0.58 kg CO2e per kg of food that was cooked or claimed instead of landfilled, in the range of EPA WARM.
+- **Water saved** is the water footprint of that same food, following Mekonnen & Hoekstra (2011).
+- **Money preserved** is the grocery price of food that was cooked or claimed instead of tossed.
 
-`schema.sql` is the Neon + Tiger Data shape: users and ingredients in Postgres, a `waste_events` hypertable, and a continuous aggregate that matches the chart query on the Impact page. The booth computes that rollup in the browser so the demo does not depend on a database.
+`schema.sql` is the Tiger Data shape: a `waste_events` hypertable and an `impact_daily` continuous aggregate. The booth runs the same tables in local Postgres so the page works with no hosted database.
 
 ## Where the sponsors sit
 
@@ -51,8 +52,8 @@ Eating groceries you already bought does not undo the farm. EcoBite does not tak
 | Actually Intelligent | Meal rank updates from clocks and claims. The coach answers substitutions, heat, and amounts for the step you are on. |
 | Gemini | `POST /api/vision` sends a receipt or fridge photo and expects structured JSON. Samples and pasted receipt text run with no key. |
 | ElevenLabs | `POST /api/speech` uses Flash (`eleven_flash_v2_5`) for the coach. The browser voice is the fallback, and the lines are written to be spoken. |
-| Spacetime | Offer, claim, and host are the room reducers for `bursley-floor-3`. The booth runs them locally so a claim is instant with nothing to provision. Neighbor posts arrive on a timer so the room feels live. |
-| Tiger Data | `waste_events` hypertable and `impact_daily` continuous aggregate in `schema.sql`. The chart is that query. |
+| Spacetime | Offer, claim, and host are the room reducers for `bursley-floor-3`. The booth hosts that room in the server and pushes it over a live stream, so a claim updates every open screen at once. Items under 24 hours are broadcast when they are logged. Neighbor posts arrive on a timer. |
+| Tiger Data | `waste_events` is a real Postgres table the Impact page queries. `schema.sql` is the Tiger Data hypertable and continuous aggregate for the same rollup. |
 | Neon | `users`, `ingredients`, and `rescue_posts` in the same file. Profiles, shelf, recipe history. |
 | Voice and plating | The coach is the voice surface (Grok Voice or ElevenLabs can speak the same lines). Each meal has a plating note and a graphic plate, the slot an image model fills. |
 

@@ -28,7 +28,7 @@ export function RescueBoard() {
         <p className="text-xs tracking-[0.2em] text-moss uppercase">Neighborhood rescue</p>
         <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">If it dies in your fridge, it can live in someone else&apos;s pan.</h1>
         <p className="mt-3 text-muted-foreground">
-          Bursley floor 3 shares one room. Claims show up for everyone without a refresh. Posts from neighbors arrive on their own — stay on this page for a minute.
+          Anything with less than 24 hours left is broadcast into the Bursley floor 3 room. Claim it, or host a skillet, and every open screen updates at the same time. Neighbors post on their own — stay here for a minute.
         </p>
       </header>
 
@@ -68,7 +68,7 @@ export function RescueBoard() {
         <article className="rounded-3xl border border-border bg-card p-5">
           <h2 className="font-serif text-2xl">How the room works</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Offer, claim, and host are the reducers. This booth runs them locally so the demo has zero setup. The same actions are the write path into a Spacetime room named bursley-floor-3.
+            Offer, claim, and host are the room reducers for bursley-floor-3. A claim on one screen leaves the board on every other screen in the same moment.
           </p>
         </article>
       </section>
