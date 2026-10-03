@@ -23,6 +23,19 @@ Booth mode needs no API keys. Copy `.env.example` to `.env.local` and fill in ke
 
 The sidebar says which path is live.
 
+## Add API keys
+
+Create `.env.local` next to `package.json`. It stays on your machine and is not committed.
+
+```bash
+GEMINI_API_KEY=your_gemini_key
+GEMINI_MODEL=gemini-2.5-flash
+ELEVENLABS_API_KEY=your_elevenlabs_key
+ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
+```
+
+Restart `npm run dev` after saving. Gemini keys come from [Google AI Studio](https://aistudio.google.com/apikey). ElevenLabs keys come from the ElevenLabs dashboard, under Developers / API keys. Those two are the MLH Gemini and ElevenLabs prize paths. Printed receipts still parse without them. A Gemini key is what reads a crumpled receipt or a fridge photo. An ElevenLabs key is what speaks the chef.
+
 ## Ninety-second demo
 
 1. **Scan.** List what’s left (or read the receipt / fridge sample, or upload a photo if Gemini is keyed). Each line gets an expiration estimate. Log it. Cooked rice is under 24 hours, so it shows up on the floor by itself.

@@ -66,8 +66,8 @@ export function ScanStudio() {
         setNote(
           data.reason === "too-large"
             ? "That photo is over 4 MB. Try a smaller one."
-            : data.reason === "no-text"
-              ? "No grocery words showed up in that photo. A printed receipt works with no key. A picture of loose food, with nothing written on it, needs a Gemini API key so the model can see it."
+              : data.reason === "no-text"
+              ? "No grocery names survived the read. Weight, tax, and cash lines are ignored. A Gemini API key is what reads a messy receipt or a fridge photo with no labels."
               : "Couldn't read that photo. Try a clearer picture, or type the list.",
         )
         return
@@ -223,6 +223,11 @@ export function ScanStudio() {
               <p className="mt-2 text-sm text-muted-foreground">
                 {result.title} · {result.place}
               </p>
+              {result.model === "on-device text" && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Cash, tax, weight, and words that are not groceries are left off. A Gemini key reads the lines this pass could not.
+                </p>
+              )}
               <ul className="mt-4 space-y-2">
                 {result.items.map((item) => (
                   <li key={item.ticket + item.name} className="flex items-start justify-between gap-3 rounded-xl bg-muted/60 px-3 py-2 text-sm">

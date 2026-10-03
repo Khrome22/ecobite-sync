@@ -418,6 +418,21 @@ const CATALOG: (ParsedItem & { keys: string[] })[] = [
   { keys: ["oat milk"], ticket: "OAT MILK", name: "Oat milk", quantityLabel: "carton", grams: 1000, category: "other", hoursToExpire: 168, priceUsd: 3.99 },
   { keys: ["cooked rice", "rice"], ticket: "RICE", name: "Cooked rice", quantityLabel: "leftover bowl", grams: 400, category: "grain", hoursToExpire: 18, priceUsd: 1.1, safety: "Only if it was refrigerated. Get it steaming hot all the way through.", note: "Leftovers. Eat it today." },
   { keys: ["cucumber"], ticket: "CUCUMBER", name: "Cucumber", quantityLabel: "1", grams: 200, category: "produce", hoursToExpire: 120, priceUsd: 0.99 },
+  { keys: ["potato"], ticket: "POTATOES", name: "Potatoes", quantityLabel: "bag", grams: 900, category: "produce", hoursToExpire: 336, priceUsd: 3.99 },
+  { keys: ["broccoli"], ticket: "BROCCOLI", name: "Broccoli", quantityLabel: "1 crown", grams: 300, category: "produce", hoursToExpire: 120, priceUsd: 2.49 },
+  { keys: ["brussel"], ticket: "BRUSSELS", name: "Brussels sprouts", quantityLabel: "1 bag", grams: 340, category: "produce", hoursToExpire: 120, priceUsd: 3.99 },
+  { keys: ["grapefruit"], ticket: "GRAPEFRUIT", name: "Grapefruit", quantityLabel: "1", grams: 300, category: "produce", hoursToExpire: 168, priceUsd: 1.49 },
+  { keys: ["pineapple"], ticket: "PINEAPPLE", name: "Pineapple", quantityLabel: "1", grams: 900, category: "produce", hoursToExpire: 120, priceUsd: 3.99 },
+  { keys: ["grape"], ticket: "GRAPES", name: "Grapes", quantityLabel: "1 bunch", grams: 400, category: "produce", hoursToExpire: 120, priceUsd: 4.99 },
+  { keys: ["snow pea", "peas"], ticket: "PEAS", name: "Snow peas", quantityLabel: "1 bag", grams: 200, category: "produce", hoursToExpire: 72, priceUsd: 3.49 },
+  { keys: ["lettuce", "iceberg"], ticket: "LETTUCE", name: "Lettuce", quantityLabel: "1 head", grams: 300, category: "produce", hoursToExpire: 120, priceUsd: 2.49 },
+  { keys: ["zucchini"], ticket: "ZUCCHINI", name: "Zucchini", quantityLabel: "1", grams: 200, category: "produce", hoursToExpire: 120, priceUsd: 1.29 },
+  { keys: ["carrot"], ticket: "CARROTS", name: "Carrots", quantityLabel: "1 bag", grams: 450, category: "produce", hoursToExpire: 240, priceUsd: 1.99 },
+  { keys: ["apple"], ticket: "APPLES", name: "Apples", quantityLabel: "4", grams: 600, category: "produce", hoursToExpire: 240, priceUsd: 3.49 },
+  { keys: ["mushroom"], ticket: "MUSHROOMS", name: "Mushrooms", quantityLabel: "1 pack", grams: 227, category: "produce", hoursToExpire: 96, priceUsd: 2.99 },
+  { keys: ["cabbage"], ticket: "CABBAGE", name: "Cabbage", quantityLabel: "1 head", grams: 700, category: "produce", hoursToExpire: 168, priceUsd: 1.99 },
+  { keys: ["celery"], ticket: "CELERY", name: "Celery", quantityLabel: "1 bunch", grams: 400, category: "produce", hoursToExpire: 168, priceUsd: 1.99 },
+  { keys: ["kale"], ticket: "KALE", name: "Kale", quantityLabel: "1 bunch", grams: 200, category: "produce", hoursToExpire: 96, priceUsd: 2.49 },
   { keys: ["hummus"], ticket: "HUMMUS", name: "Hummus", quantityLabel: "tub", grams: 280, category: "other", hoursToExpire: 120, priceUsd: 3.49 },
   { keys: ["salsa"], ticket: "SALSA", name: "Salsa", quantityLabel: "jar", grams: 400, category: "produce", hoursToExpire: 240, priceUsd: 2.99 },
 ]
@@ -481,6 +496,63 @@ export function parseReceiptText(text: string): ParseResult {
 
 function longestKey(entry: { keys: string[] }) {
   return Math.max(...entry.keys.map((key) => key.length))
+}
+
+function splitPrice(line: string) {
+  const decimal = line.match(/(\d+\.\d{2})\s*$/)
+  if (decimal?.index !== undefined) {
+    return { price: Number(decimal[1]), name: line.slice(0, decimal.index).trim() }
+  }
+  const spaced = line.match(/(\d{1,3})\s+(\d{2})\s*$/)
+  if (spaced?.index !== undefined && Number(spaced[1]) <= 80) {
+    return { price: Number(`${spaced[1]}.${spaced[2]}`), name: line.slice(0, spaced.index).trim() }
+  }
+  return { price: null as number | null, name: line.trim() }
+}
+
+function isReceiptNoise(line: string) {
+  const lower = line.toLowerCase()
+  if (/^(date|loyalty|cash|change|total|subtotal|tax|gst|hst|pst|visa|debit|credit|mastercard|amex|balance|tender|rounding|savings|points|member|thank|cashier|approved|welcome|item|qty|description|amount|special)\b/.test(lower)) {
+    return true
+  }
+  if (/\b(kg|ka)\b/.test(lower) && /\bnet\b/.test(lower)) return true
+  if (/^\d/.test(lower) && /\b(kg|ka|net)\b/.test(lower)) return true
+  if (/\bdate\b/.test(lower) && /\b20\d{2}\b/.test(lower)) return true
+  return false
+}
+
+export function parseReceiptPhoto(text: string): ParseResult {
+  const ranked = [...CATALOG].sort((a, b) => longestKey(b) - longestKey(a))
+  const items: ParsedItem[] = []
+  const seen = new Set<string>()
+  for (const raw of text.split(/\n+/)) {
+    const line = raw.replace(/\s+/g, " ").trim()
+    if (!line || !/[a-z]/i.test(line) || isReceiptNoise(line)) continue
+    const { price, name } = splitPrice(line)
+    if (name.length < 3) continue
+    const lower = name.toLowerCase()
+    const known = ranked.find((entry) => entry.keys.some((key) => lower.includes(key)))
+    if (!known || seen.has(known.name)) continue
+    seen.add(known.name)
+    items.push({
+      ticket: known.ticket,
+      name: known.name,
+      quantityLabel: known.quantityLabel,
+      grams: known.grams,
+      category: known.category,
+      hoursToExpire: known.hoursToExpire,
+      priceUsd: price ?? known.priceUsd,
+      note: known.note,
+      safety: known.safety,
+    })
+  }
+  return {
+    kind: "receipt",
+    title: "Receipt photo",
+    place: "Recognized groceries only",
+    model: "on-device text",
+    items,
+  }
 }
 
 function guessShelf(lower: string): { category: Category; hours: number; grams: number } {
