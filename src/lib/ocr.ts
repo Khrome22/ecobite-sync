@@ -1,3 +1,4 @@
+import path from "node:path"
 import { createWorker, type Worker } from "tesseract.js"
 import { parsePantryList, parseReceiptText, type ParseResult } from "@/lib/kitchen"
 
@@ -5,7 +6,9 @@ const globalOcr = globalThis as typeof globalThis & { __ecobiteOcr?: Promise<Wor
 
 function worker() {
   if (!globalOcr.__ecobiteOcr) {
-    globalOcr.__ecobiteOcr = createWorker("eng").catch((error) => {
+    globalOcr.__ecobiteOcr = createWorker("eng", 1, {
+      cachePath: path.join(process.cwd(), "data", "ocr"),
+    }).catch((error) => {
       globalOcr.__ecobiteOcr = undefined
       throw error
     })
