@@ -44,3 +44,6 @@ next-env.d.ts
 # local Postgres data directory (PGlite) and OCR language data
 /data
 *.traineddata
+
+# SpacetimeDB module install (the package.json is committed)
+spacetimedb/node_modules

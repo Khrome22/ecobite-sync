@@ -2,6 +2,9 @@ import { mkdir } from "node:fs/promises"
 import path from "node:path"
 import { PGlite } from "@electric-sql/pglite"
 import type { ImpactEvent, KitchenState } from "@/lib/kitchen"
+import { tigerUrl } from "@/lib/env"
+import { writeNeon } from "@/lib/neon"
+import { TIGER_IMPACT_SQL, queryTigerImpact, writeTigerEvents } from "@/lib/tiger"
 
 const SCHEMA = `
 create table if not exists waste_events (
@@ -115,6 +118,8 @@ export async function saveRoom(state: KitchenState) {
      )`,
     [JSON.stringify(events)],
   )
+  if (tigerUrl()) await writeTigerEvents(state.events)
+  await writeNeon({ ...state, toast: null })
 }
 
 function toRow(event: ImpactEvent) {
@@ -162,7 +167,8 @@ export type ImpactDay = {
 }
 
 export type ImpactReport = {
-  engine: "PostgreSQL"
+  engine: string
+  rollup: string
   query: string
   totals: {
     loggedGrams: number
@@ -183,6 +189,10 @@ function num(value: unknown) {
 }
 
 export async function readImpact(now = Date.now()): Promise<ImpactReport> {
+  if (tigerUrl()) {
+    const remote = await queryTigerImpact()
+    return shapeImpact(now, "Tiger Data", "impact_daily", TIGER_IMPACT_SQL, remote.totals, remote.days)
+  }
   const db = await database()
   const totals = await db.query<TotalRow>(`select
       coalesce(sum(grams) filter (where kind = 'logged'), 0) as logged,
@@ -195,7 +205,18 @@ export async function readImpact(now = Date.now()): Promise<ImpactReport> {
       coalesce(sum(water_l) filter (where kind in ('cooked', 'rescued')), 0) as water_l
     from waste_events`)
   const daily = await db.query<DayRow>(IMPACT_SQL)
-  const byDay = new Map(daily.rows.map((row) => [row.day, row]))
+  return shapeImpact(now, "PostgreSQL", "waste_events", IMPACT_SQL, totals.rows[0], daily.rows)
+}
+
+function shapeImpact(
+  now: number,
+  engine: string,
+  rollup: string,
+  query: string,
+  total: TotalRow | undefined,
+  daily: DayRow[],
+): ImpactReport {
+  const byDay = new Map(daily.map((row) => [String(row.day).slice(0, 10), row]))
   const days: ImpactDay[] = []
   for (let ago = 13; ago >= 0; ago--) {
     const date = new Date(now)
@@ -213,10 +234,10 @@ export async function readImpact(now = Date.now()): Promise<ImpactReport> {
       kept: num(row?.grams_kept),
     })
   }
-  const total = totals.rows[0]
   return {
-    engine: "PostgreSQL",
-    query: IMPACT_SQL.trim(),
+    engine,
+    rollup,
+    query: query.trim(),
     totals: {
       loggedGrams: num(total?.logged),
       wastedGrams: num(total?.wasted),

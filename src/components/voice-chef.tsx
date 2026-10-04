@@ -364,7 +364,7 @@ export function VoiceChef() {
                   className="h-10 px-4"
                   disabled={uniqueUses.length === 0}
                   onClick={() => {
-                    logMeal(uniqueUses.map((item) => item.id))
+                    logMeal(uniqueUses.map((item) => item.id), { id: recipe.id, name: recipe.name })
                     router.push("/impact")
                   }}
                 >

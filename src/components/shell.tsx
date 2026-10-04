@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { ChartColumn, Flame, Radio, Refrigerator, ScanLine } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { YOU } from "@/lib/kitchen"
+import { spacetimeMode, subscribeSpacetimeMode, type SpacetimeMode } from "@/lib/live-path"
 import { useKitchen } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
@@ -53,15 +54,30 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { state, reset } = useKitchen()
   const [open, setOpen] = useState(false)
-  const [keys, setKeys] = useState<{ gemini: boolean; eleven: boolean } | null>(null)
+  const [keys, setKeys] = useState<{
+    gemini: boolean
+    eleven: boolean
+    spacetime: boolean
+    neon: boolean
+    tiger: boolean
+  } | null>(null)
+  const roomMode = useSyncExternalStore(subscribeSpacetimeMode, spacetimeMode, () => "off" as SpacetimeMode)
   const openCount = state.rescues.filter((rescue) => !rescue.claimedBy).length
 
   useEffect(() => {
     fetch("/api/status")
       .then((response) => response.json())
-      .then((data: { gemini: boolean; eleven: boolean }) => setKeys(data))
-      .catch(() => setKeys({ gemini: false, eleven: false }))
+      .then((data: { gemini: boolean; eleven: boolean; spacetime: boolean; neon: boolean; tiger: boolean }) => setKeys(data))
+      .catch(() => setKeys({ gemini: false, eleven: false, spacetime: false, neon: false, tiger: false }))
   }, [])
+
+  const roomLabel = !keys?.spacetime
+    ? "Room: this server"
+    : roomMode === "live"
+      ? "Spacetime live"
+      : roomMode === "booth"
+        ? "Spacetime unreachable"
+        : "Spacetime connecting"
 
   const itemClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href)
@@ -90,11 +106,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="mt-auto space-y-3">
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {keys?.gemini ? "Gemini live" : "Vision: booth samples"}
-            {" · "}
-            {keys?.eleven ? "ElevenLabs live" : "Voice: this browser"}
-          </p>
+          <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
+            <p>
+              {keys?.gemini ? "Gemini live" : "Vision: booth samples"}
+              {" · "}
+              {keys?.eleven ? "ElevenLabs live" : "Voice: this browser"}
+            </p>
+            <p>
+              {roomLabel}
+              {" · "}
+              {keys?.neon ? "Neon live" : "Shelf: local"}
+              {" · "}
+              {keys?.tiger ? "Tiger live" : "Impact: local"}
+            </p>
+          </div>
           <div>
             <p className="text-sm">{YOU.name}</p>
             <p className="text-xs text-muted-foreground">
