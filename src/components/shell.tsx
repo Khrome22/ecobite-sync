@@ -30,15 +30,19 @@ const NAV = [
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2.5">
-      <span className="grid size-8 place-items-center rounded-2xl bg-[#b8dce4] text-sm font-semibold text-[#29495c]">
-        E
-      </span>
+      <img
+        src="/ecobite-logo.png"
+        alt="EcoBite logo"
+        className="size-8 rounded-2xl object-contain"
+      />
       <span className="leading-tight">
         <span className="block font-serif text-xl tracking-tight">EcoBite</span>
-        <span className="block text-[11px] text-muted-foreground">Bursley floor 3</span>
+        <span className="block text-[11px] text-muted-foreground">
+          Bursley floor 3
+        </span>
       </span>
     </Link>
-  )
+  );
 }
 
 function LivePill({ count }: { count: number }) {
