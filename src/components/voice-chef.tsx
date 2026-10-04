@@ -389,9 +389,9 @@ export function VoiceChef() {
           {voiceLine === "eleven"
             ? "Voice: ElevenLabs"
             : voiceLine === "browser"
-              ? "Voice: this browser"
+              ? "Voice: this browser. If you hear nothing, open this page in Safari."
               : voiceLine === "silent"
-                ? "Voice: no sound"
+                ? "Voice: no sound. Open this page in Safari."
                 : "Voice arms when you start"}
           {" · "}
           Space next · R repeat · M talk
