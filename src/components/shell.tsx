@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { ChartColumn, Flame, Radio, Refrigerator, ScanLine } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -53,15 +53,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { state, reset } = useKitchen()
   const [open, setOpen] = useState(false)
-  const [keys, setKeys] = useState<{ gemini: boolean; eleven: boolean } | null>(null)
   const openCount = state.rescues.filter((rescue) => !rescue.claimedBy).length
-
-  useEffect(() => {
-    fetch("/api/status")
-      .then((response) => response.json())
-      .then((data: { gemini: boolean; eleven: boolean }) => setKeys(data))
-      .catch(() => setKeys({ gemini: false, eleven: false }))
-  }, [])
 
   const itemClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href)
@@ -90,11 +82,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="mt-auto space-y-3">
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {keys?.gemini ? "Gemini live" : "Vision: booth samples"}
-            {" · "}
-            {keys?.eleven ? "ElevenLabs live" : "Voice: this browser"}
-          </p>
+          <p className="text-xs leading-relaxed text-muted-foreground">One shared kitchen</p>
           <div>
             <p className="text-sm">{YOU.name}</p>
             <p className="text-xs text-muted-foreground">

@@ -124,10 +124,10 @@ export function ScanStudio() {
   return (
     <div className="space-y-6">
       <header className="max-w-2xl">
-        <p className="text-xs tracking-[0.2em] text-moss uppercase">Receipt, fridge, or a list</p>
-        <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">Log what you have. Get a clock.</h1>
+        <p className="text-xs tracking-[0.2em] text-moss uppercase">Add food</p>
+        <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">What&apos;s in the kitchen?</h1>
         <p className="mt-3 text-muted-foreground">
-          Photograph a receipt, photograph the fridge, or type the ingredients you have left. Printed words on a photo are read on this machine, with no key. A Gemini key is only needed when the food itself has no label. Each item gets a shelf-life estimate, and anything under 24 hours is broadcast to the floor when you log it.
+          Take a photo of a receipt, a photo of the fridge, or type what you have. Each item gets a clock. Food that expires today shows up for your floor.
         </p>
       </header>
 

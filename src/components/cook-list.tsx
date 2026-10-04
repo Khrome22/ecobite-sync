@@ -7,7 +7,7 @@ import { useNow } from "@/components/countdown"
 import { Plate } from "@/components/plate"
 import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { formatCo2, formatKg, footprint, scoreRecipes, remaining } from "@/lib/kitchen"
+import { formatKg, scoreRecipes, remaining } from "@/lib/kitchen"
 import { useKitchen } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
@@ -34,12 +34,12 @@ export function CookList() {
   return (
     <div className="space-y-6">
       <header className="max-w-2xl">
-        <p className="text-xs tracking-[0.2em] text-moss uppercase">Hands-free coach</p>
+        <p className="text-xs tracking-[0.2em] text-moss uppercase">Cook</p>
         <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">
-          {focus ? `Meals that use the ${focus.toLowerCase()}.` : "Pick what to cook."}
+          {focus ? `Meals that use the ${focus.toLowerCase()}.` : "What should we cook?"}
         </h1>
         <p className="mt-3 text-muted-foreground">
-          Ready now is what you can finish from the shelf. The whole book is every meal, including ones you&apos;re still missing a piece for.
+          Ready now means you already have the ingredients. All recipes includes meals you are missing a piece for.
         </p>
       </header>
 
@@ -65,7 +65,7 @@ export function CookList() {
             )}
             aria-pressed={book === "all"}
           >
-            Whole book · {scored.length}
+            All recipes · {scored.length}
           </button>
         </div>
         <Input
@@ -87,7 +87,6 @@ export function CookList() {
         <ol className="space-y-3">
           {rows.map((row, index) => {
             const grams = row.uses.reduce((sum, item) => sum + item.grams, 0)
-            const co2 = row.uses.reduce((sum, item) => sum + footprint(item).landfillCo2eKg, 0)
             return (
               <li key={row.recipe.id} className="grid gap-4 rounded-3xl border border-border bg-card p-4 shadow-[0_8px_25px_rgba(54,76,86,0.06)] md:grid-cols-[auto_1fr_auto] md:items-center md:p-5">
                 <Plate id={row.recipe.id} />
@@ -95,9 +94,9 @@ export function CookList() {
                   <p className="text-xs text-muted-foreground">
                     {row.viable
                       ? index === 0 && !needle
-                        ? "Best use of the clock"
-                        : `Ready · option ${index + 1}`
-                      : "Missing a piece"}
+                        ? "Best choice"
+                        : "You can make this"
+                      : "Missing something"}
                     {" · "}
                     {row.recipe.minutes} min
                   </p>
@@ -112,13 +111,11 @@ export function CookList() {
                     <p className="mt-2 text-sm text-amber">Still need {row.missing.join(", ")}</p>
                   )}
                   {row.viable && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatKg(grams)} kept in use · {formatCo2(co2)} landfill CO2e avoided if you finish it
-                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{formatKg(grams)} of food you already have</p>
                   )}
                 </div>
                 <Link href={`/cook/${row.recipe.id}`} className={buttonVariants({ className: "h-10 rounded-2xl px-4 md:self-end" })}>
-                  {row.viable ? "Start" : "Cook anyway"}
+                  {row.viable ? "Cook" : "Cook anyway"}
                 </Link>
               </li>
             )

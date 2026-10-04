@@ -414,17 +414,13 @@ export function VoiceChef() {
           All meals
         </Link>
         <p className="text-xs text-muted-foreground">
-          {voiceLine === "eleven"
-            ? "Voice: ElevenLabs"
-            : voiceLine === "local"
-              ? "Voice: this computer"
-              : voiceLine === "browser"
-                ? "Voice: this browser. If you hear nothing, open this page in Safari."
-                : voiceLine === "silent"
-                  ? "Voice: no sound. Open this page in Safari."
-                  : "Voice arms when you start"}
-          {" · "}
-          Space next · R repeat · M talk
+          {voiceLine === "silent"
+            ? "No sound yet. Press Start again."
+            : phase === "speaking"
+              ? "Reading this step"
+              : phase === "listening"
+                ? "Listening"
+                : "Space goes to the next step"}
         </p>
       </div>
 
@@ -454,7 +450,7 @@ export function VoiceChef() {
                   We ate it
                 </Button>
                 <Button variant="outline" className="h-10 px-4" onClick={() => router.push("/cook")}>
-                  Just rehearsing
+                  Don&apos;t log it
                 </Button>
               </div>
             </div>
@@ -470,13 +466,13 @@ export function VoiceChef() {
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{step.detail}</p>
               {!started && (
                 <p className="mt-4 max-w-xl text-sm text-muted-foreground">
-                  Start once, then keep your hands on the food. It reads the step and listens after each line. Ask how much, how hot, why, or name an ingredient you don&apos;t have. The voice is a sound file, so it plays even when Chrome stays quiet.
+                  Press Start. It reads this step out loud. Then press Next.
                 </p>
               )}
 
               {!started ? (
                 <Button
-                  className="mt-6 h-11 px-5"
+                  className="mt-6 h-12 px-6 text-base"
                   onClick={() => {
                     unlock()
                     setStarted(true)
@@ -488,18 +484,19 @@ export function VoiceChef() {
                   Start cooking
                 </Button>
               ) : (
-                <div className="mt-6 flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={() => onHeard("back")} disabled={stepIndex === 0}>
+                <div className="mt-6 flex flex-wrap items-center gap-2">
+                  <Button className="h-12 px-6 text-base" onClick={() => onHeard("next")}>
+                    {stepIndex === recipe.steps.length - 1 ? "Finish" : "Next step"}
+                  </Button>
+                  <Button variant="outline" className="h-12" onClick={() => onHeard("repeat")}>
+                    Hear it again
+                  </Button>
+                  <Button variant="outline" className="h-12" onClick={() => onHeard("back")} disabled={stepIndex === 0}>
                     Back
                   </Button>
-                  <Button variant="outline" onClick={() => onHeard("repeat")}>
-                    Repeat
-                  </Button>
-                  <Button onClick={() => onHeard("next")}>
-                    {stepIndex === recipe.steps.length - 1 ? "Finish" : "Next"}
-                  </Button>
                   <Button
-                    variant={handsFree ? "default" : "outline"}
+                    variant="outline"
+                    className="h-12"
                     aria-pressed={handsFree}
                     onClick={() => {
                       unlock()
@@ -513,11 +510,11 @@ export function VoiceChef() {
                       }
                     }}
                   >
-                    {phase === "listening" ? "Listening…" : handsFree ? "Mic on" : "Talk"}
+                    {phase === "listening" ? "Listening…" : handsFree ? "Mic is on" : "Use the mic"}
                   </Button>
                   {step.timerSec && (
-                    <Button variant="outline" onClick={() => onHeard("timer")}>
-                      {Math.round(step.timerSec / 60)} min timer
+                    <Button variant="outline" className="h-12" onClick={() => onHeard("timer")}>
+                      Start a {Math.round(step.timerSec / 60)} min timer
                     </Button>
                   )}
                 </div>

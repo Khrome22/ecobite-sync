@@ -25,10 +25,10 @@ export function RescueBoard() {
   return (
     <div className="space-y-6">
       <header className="max-w-2xl">
-        <p className="text-xs tracking-[0.2em] text-moss uppercase">Neighborhood rescue</p>
-        <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">If it dies in your fridge, it can live in someone else&apos;s pan.</h1>
+        <p className="text-xs tracking-[0.2em] text-moss uppercase">Your floor</p>
+        <h1 className="mt-2 font-serif text-4xl leading-tight md:text-5xl">Food your neighbors can take.</h1>
         <p className="mt-3 text-muted-foreground">
-          Anything with less than 24 hours left is broadcast into the Bursley floor 3 room. Claim it, or host a skillet, and every open screen updates at the same time. Neighbors post on their own — stay here for a minute.
+          This is food that should be eaten today. Tap Claim and it is yours. Everyone on this kitchen sees the same list.
         </p>
       </header>
 

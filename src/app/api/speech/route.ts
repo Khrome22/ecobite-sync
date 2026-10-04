@@ -18,12 +18,12 @@ export async function POST(request: Request) {
   const streamed = await elevenLabs(text)
   if (streamed) return streamed
 
-  const wav = await localWav(text)
-  if (!wav) return Response.json({ ok: false, reason: "silent" }, { status: 502 })
+  const local = await localAudio(text)
+  if (!local) return Response.json({ ok: false, reason: "silent" }, { status: 502 })
 
-  return new Response(new Uint8Array(wav), {
+  return new Response(new Uint8Array(local.body), {
     headers: {
-      "Content-Type": "audio/wav",
+      "Content-Type": local.type,
       "Cache-Control": "no-store",
       "x-ecobite-voice": "local",
     },
@@ -45,8 +45,8 @@ async function elevenLabs(text: string) {
       },
       body: JSON.stringify({
         text,
-        model_id: "eleven_flash_v2_5",
-        voice_settings: { stability: 0.45, similarity_boost: 0.75 },
+        model_id: "eleven_turbo_v2_5",
+        voice_settings: { stability: 0.38, similarity_boost: 0.82, style: 0.28, use_speaker_boost: true },
       }),
       signal: AbortSignal.timeout(4000),
     })
@@ -69,23 +69,49 @@ async function elevenLabs(text: string) {
   }
 }
 
-async function localWav(text: string) {
+async function localAudio(text: string) {
   const dir = await mkdtemp(join(tmpdir(), "ecobite-voice-"))
-  const file = join(dir, "line.wav")
   try {
+    const mp3 = join(dir, "line.mp3")
+    const neural = await run("python3", [
+      "-m",
+      "edge_tts",
+      "--voice",
+      "en-US-JennyNeural",
+      "--rate=-6%",
+      "--text",
+      text,
+      "--write-media",
+      mp3,
+    ])
+    if (neural) {
+      const body = await readFile(mp3)
+      if (body.byteLength > 200) return { body, type: "audio/mpeg" }
+    }
+
+    const wav = join(dir, "line.wav")
+    const macVoices = ["Samantha", "Ava", "Allison", "Victoria"]
     const spoken =
       process.platform === "darwin"
-        ? await run("say", ["-o", file, "--file-format=WAVE", "--data-format=LEI16@22050", text])
-        : (await run("espeak-ng", ["-w", file, "-v", "en-us", "-s", "150", text])) ||
-          (await run("espeak", ["-w", file, "-v", "en-us", "-s", "150", text]))
+        ? await macSay(wav, text, macVoices)
+        : (await run("espeak-ng", ["-w", wav, "-v", "en-us+f3", "-s", "138", "-p", "42", text])) ||
+          (await run("espeak", ["-w", wav, "-v", "en-us+f3", "-s", "138", text]))
     if (!spoken) return null
-    const wav = await readFile(file)
-    return wav.byteLength > 44 ? wav : null
+    const body = await readFile(wav)
+    return body.byteLength > 44 ? { body, type: "audio/wav" } : null
   } catch {
     return null
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => undefined)
   }
+}
+
+async function macSay(file: string, text: string, voices: string[]) {
+  for (const voice of voices) {
+    const ok = await run("say", ["-v", voice, "-r", "168", "-o", file, "--file-format=WAVE", "--data-format=LEI16@22050", text])
+    if (ok) return true
+  }
+  return run("say", ["-r", "168", "-o", file, "--file-format=WAVE", "--data-format=LEI16@22050", text])
 }
 
 function run(command: string, args: string[]) {

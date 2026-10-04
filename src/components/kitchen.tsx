@@ -6,8 +6,6 @@ import { useNow } from "@/components/countdown"
 import { IngredientCard } from "@/components/ingredient-card"
 import { buttonVariants } from "@/components/ui/button"
 import {
-  footprint,
-  formatCo2,
   formatKg,
   formatMoney,
   rankRecipes,
@@ -49,8 +47,8 @@ export function Kitchen() {
           </h1>
           <p className="mt-3 max-w-xl text-base text-muted-foreground">
             {critical.length > 0
-              ? `${formatMoney(atRisk)} still edible on your shelf. Anything under 24 hours is already on the floor, and the floor updates live.`
-              : "The shelf is calm. Scan a haul when you shop, or take something off the floor."}
+              ? `${formatMoney(atRisk)} of food should be eaten soon. Cook it, or give it to someone on your floor.`
+              : "Nothing is about to go bad. Add food when you shop."}
           </p>
         </div>
         <AddIngredientDialog />
@@ -101,19 +99,15 @@ export function Kitchen() {
               })}
             </ul>
             <p className="mt-4 text-sm text-muted-foreground">
-              Uses               {formatKg(tonight.uses.reduce((sum, item) => sum + item.grams, 0))}
-              {" · "}
-              {tonight.recipe.minutes} min
-              {" · "}
-              {formatCo2(tonight.uses.reduce((sum, item) => sum + footprint(item).landfillCo2eKg, 0))}{" "}
-              landfill CO2e if it hits the bin instead
+              {tonight.recipe.minutes} minutes · uses{" "}
+              {tonight.uses.map((item) => item.name.toLowerCase()).join(", ")}
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <Link href={`/cook/${tonight.recipe.id}`} className={buttonVariants({ className: "h-10 px-4" })}>
-                Start hands-free
+              <Link href={`/cook/${tonight.recipe.id}`} className={buttonVariants({ className: "h-11 px-5 text-base" })}>
+                Cook this
               </Link>
-              <Link href="/cook" className={buttonVariants({ variant: "outline", className: "h-10 px-4" })}>
-                Other meals
+              <Link href="/cook" className={buttonVariants({ variant: "outline", className: "h-11 px-5" })}>
+                See other meals
               </Link>
             </div>
           </article>
@@ -126,7 +120,7 @@ export function Kitchen() {
 
         <article className="rounded-3xl border border-border bg-card p-5">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs tracking-[0.18em] text-moss uppercase">Floor room</p>
+            <p className="text-xs tracking-[0.18em] text-moss uppercase">Free food</p>
             <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <span className="live-dot size-1.5 rounded-full bg-lime" />
               Live
@@ -147,8 +141,8 @@ export function Kitchen() {
               <p className="mt-2 text-sm text-muted-foreground">Offer something before it turns, or wait. Neighbors post on their own.</p>
             </>
           )}
-          <Link href="/rescue" className={buttonVariants({ variant: "outline", className: "mt-5 h-10 px-4" })}>
-            {openRescues.length > 0 ? `${openRescues.length} waiting` : "Open the room"}
+          <Link href="/rescue" className={buttonVariants({ variant: "outline", className: "mt-5 h-11 px-4" })}>
+            {openRescues.length > 0 ? `See ${openRescues.length} free items` : "See the floor"}
           </Link>
         </article>
       </section>
