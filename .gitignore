@@ -45,5 +45,6 @@ next-env.d.ts
 /data
 *.traineddata
 
-# SpacetimeDB module install (the package.json is committed)
+# SpacetimeDB module install and the bundle `spacetime publish` rebuilds
 spacetimedb/node_modules
+spacetimedb/dist
