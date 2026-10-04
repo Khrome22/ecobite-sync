@@ -64,7 +64,7 @@ The Impact page reads Postgres. Every log, cook, claim, and toss is a `waste_eve
 | Sustainability | The impact page. Household food kept, landfill CO2e, money. The caveat is part of the product. |
 | Actually Intelligent | Meal rank updates from clocks and claims. The coach answers substitutions, heat, and amounts for the step you are on. |
 | Gemini | `POST /api/vision` sends a receipt or fridge photo and expects structured JSON. Samples and pasted receipt text run with no key. |
-| ElevenLabs | `POST /api/speech` uses Turbo when the key can speak. If it cannot, the same route returns a neural voice (Jenny) or the Mac Samantha voice, and the cook page plays that file. |
+| ElevenLabs | `POST /api/speech` uses Turbo when the key can speak. If it cannot, the same route speaks with Jenny, a neural voice installed by `npm install`, so localhost matches this preview. The Mac `say` voice is only a backup. |
 | Spacetime | Offer, claim, and host are the room reducers for `bursley-floor-3`. The booth hosts that room in the server and pushes it over a live stream, so a claim updates every open screen at once. Items under 24 hours are broadcast when they are logged. Neighbor posts arrive on a timer. |
 | Tiger Data | `waste_events` is a real Postgres table the Impact page queries. `schema.sql` is the Tiger Data hypertable and continuous aggregate for the same rollup. |
 | Neon | `users`, `ingredients`, and `rescue_posts` in the same file. Profiles, shelf, recipe history. |

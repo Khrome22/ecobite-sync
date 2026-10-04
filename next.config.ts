@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   // 127.0.0.1 is the local preview. *.agent.cvm.dev is the cloud preview.
   allowedDevOrigins: ["127.0.0.1", "*.agent.cvm.dev", "**.cvm.dev"],
   devIndicators: { position: "top-right" },
-  serverExternalPackages: ["@electric-sql/pglite", "tesseract.js"],
+  serverExternalPackages: ["@electric-sql/pglite", "tesseract.js", "msedge-tts"],
 };
 
 export default nextConfig;

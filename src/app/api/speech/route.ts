@@ -2,6 +2,8 @@ import { spawn } from "node:child_process"
 import { mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { Readable } from "node:stream"
+import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts"
 
 let elevenDownUntil = 0
 
@@ -69,7 +71,51 @@ async function elevenLabs(text: string) {
   }
 }
 
+function escapeXml(text: string) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
+
+async function jenny(text: string) {
+  const tts = new MsEdgeTTS()
+  try {
+    await tts.setMetadata("en-US-JennyNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3)
+    const { audioStream } = tts.toStream(escapeXml(text), { rate: "-6%" })
+    const body = await readAll(audioStream)
+    return body.byteLength > 200 ? body : null
+  } catch {
+    return null
+  } finally {
+    tts.close()
+  }
+}
+
+function readAll(stream: Readable) {
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = []
+    const timer = setTimeout(() => {
+      stream.destroy()
+      reject(new Error("slow"))
+    }, 8000)
+    stream.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)))
+    stream.on("end", () => {
+      clearTimeout(timer)
+      resolve(Buffer.concat(chunks))
+    })
+    stream.on("error", (error) => {
+      clearTimeout(timer)
+      reject(error)
+    })
+  })
+}
+
 async function localAudio(text: string) {
+  const spoken = await jenny(text)
+  if (spoken) return { body: spoken, type: "audio/mpeg" }
+
   const dir = await mkdtemp(join(tmpdir(), "ecobite-voice-"))
   try {
     const mp3 = join(dir, "line.mp3")
