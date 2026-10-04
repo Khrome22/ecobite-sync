@@ -1,14 +1,17 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import { useNow } from "@/components/countdown"
 import { Button } from "@/components/ui/button"
 import { PRESENCE, YOU, formatWhen, remaining } from "@/lib/kitchen"
+import { spacetimeMode, subscribeSpacetimeMode } from "@/lib/live-path"
 import { useKitchen } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
 export function RescueBoard() {
   const { state, claim, hostMeal } = useKitchen()
   const now = useNow()
+  const spacetime = useSyncExternalStore(subscribeSpacetimeMode, spacetimeMode, () => "off") === "live"
   const open = state.rescues
     .filter((rescue) => !rescue.claimedBy)
     .sort((a, b) => a.expiresAt - b.expiresAt)
@@ -47,7 +50,7 @@ export function RescueBoard() {
         ))}
         <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
           <span className="live-dot size-1.5 rounded-full bg-lime" />
-          Room live
+          {spacetime ? "Spacetime subscribed" : "Room live"}
         </span>
       </div>
 
@@ -68,7 +71,9 @@ export function RescueBoard() {
         <article className="rounded-3xl border border-border bg-card p-5">
           <h2 className="font-serif text-2xl">How the room works</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Offer, claim, and host are the room reducers for bursley-floor-3. A claim on one screen leaves the board on every other screen in the same moment.
+            {spacetime
+              ? "Offer, claim, and host are SpacetimeDB reducers for bursley-floor-3. This screen is subscribed, so a claim on another phone shows up here when the reducer commits."
+              : "Offer, claim, and host are the room reducers for bursley-floor-3. This booth hosts that room in the server and pushes it over a live stream, so a claim updates every open screen at once."}
           </p>
         </article>
       </section>

@@ -44,3 +44,7 @@ next-env.d.ts
 # local Postgres data directory (PGlite) and OCR language data
 /data
 *.traineddata
+
+# SpacetimeDB module install and the bundle `spacetime publish` rebuilds
+spacetimedb/node_modules
+spacetimedb/dist

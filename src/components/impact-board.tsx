@@ -18,6 +18,7 @@ type ImpactDay = {
 
 type ImpactReport = {
   engine: string
+  rollup?: string
   query: string
   totals: {
     loggedGrams: number
@@ -40,7 +41,7 @@ const KIND: Record<string, string> = {
 }
 
 export function ImpactBoard() {
-  const { state } = useKitchen()
+  const { state, savedTick } = useKitchen()
   const now = useNow()
   const [report, setReport] = useState<ImpactReport | null>(null)
   const [error, setError] = useState(false)
@@ -66,7 +67,7 @@ export function ImpactBoard() {
     return () => {
       cancelled = true
     }
-  }, [newest, count])
+  }, [newest, count, savedTick])
 
   const days = report?.days ?? []
   const totals = report?.totals
@@ -157,7 +158,9 @@ export function ImpactBoard() {
           ))}
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
-          Today&apos;s bar fills when you log, cook, claim, or toss something. The query behind the bars is the same shape Tiger Data keeps warm as a continuous aggregate.
+          {report?.rollup === "impact_daily"
+            ? "Today's bar is the impact_daily continuous aggregate. Fresh rows show up before the refresh policy runs, because the aggregate is real-time."
+            : "Today's bar fills when you log, cook, claim, or toss something. The query behind the bars is the same shape Tiger Data keeps warm as a continuous aggregate."}
         </p>
       </section>
 
@@ -185,7 +188,15 @@ export function ImpactBoard() {
         <div className="min-w-0 rounded-3xl border border-border p-4">
           <h2 className="font-serif text-2xl">The rollup</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            This is the query the chart just ran against <code className="text-foreground">waste_events</code>. On Tiger Data that bucket is a continuous aggregate. Here Postgres is in the app so the demo does not wait on a hosted database. The Timescale shape is in <code className="text-foreground">schema.sql</code>.
+            {report?.rollup === "impact_daily" ? (
+              <>
+                This is the query the chart just ran against <code className="text-foreground">impact_daily</code>, the continuous aggregate over the <code className="text-foreground">waste_events</code> hypertable.
+              </>
+            ) : (
+              <>
+                This is the query the chart just ran against <code className="text-foreground">waste_events</code>. On Tiger Data that bucket is a continuous aggregate. Here Postgres is in the app so the demo does not wait on a hosted database. The Timescale shape is in <code className="text-foreground">schema/tiger.sql</code>.
+              </>
+            )}
           </p>
           <pre className="mt-4 max-w-full overflow-x-auto rounded-xl bg-background/80 p-3 font-mono text-[11px] leading-relaxed text-moss">{report?.query ?? "select … from waste_events group by 1;"}</pre>
         </div>
