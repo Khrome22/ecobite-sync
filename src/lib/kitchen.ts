@@ -73,6 +73,14 @@ export type RoomNote = {
   text: string
 }
 
+export type MealLog = {
+  id: string
+  at: number
+  recipeId: string
+  recipeName: string
+  ingredientIds: string[]
+}
+
 export type KitchenState = {
   version: number
   ingredients: Ingredient[]
@@ -83,6 +91,7 @@ export type KitchenState = {
   scriptIndex: number
   lastScriptAt: number
   toast: { id: string; title: string; body?: string } | null
+  meals?: MealLog[]
 }
 
 export type IngredientDraft = {
@@ -1464,6 +1473,7 @@ export function createInitial(): KitchenState {
     scriptIndex: 0,
     lastScriptAt: now - 10_000,
     toast: null,
+    meals: [],
     events: seedHistory(),
     notes: [
       {

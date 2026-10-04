@@ -16,6 +16,7 @@ import {
   type KitchenState,
 } from "@/lib/kitchen"
 import { loadSnapshot, saveRoom } from "@/lib/db"
+import { spacetimeConfig } from "@/lib/env"
 
 type RoomSlot = {
   state: KitchenState | null
@@ -45,7 +46,7 @@ export type KitchenAction =
   | { type: "offer"; id: string }
   | { type: "claim"; id: string }
   | { type: "mark"; id: string; kind: "cooked" | "wasted" }
-  | { type: "logMeal"; ids: string[] }
+  | { type: "logMeal"; ids: string[]; recipeId?: string; recipeName?: string }
   | { type: "host" }
   | { type: "reset" }
   | { type: "tick" }
@@ -213,17 +214,23 @@ function mark(current: KitchenState, id: string, kind: "cooked" | "wasted"): Kit
   )
 }
 
-function logMeal(current: KitchenState, ids: string[]): KitchenState {
+function logMeal(current: KitchenState, ids: string[], recipeId?: string, recipeName?: string): KitchenState {
   let events = current.events
   const ingredients = current.ingredients.map((item) => {
     if (!ids.includes(item.id) || item.state === "cooked" || item.state === "wasted") return item
     if (item.source !== "rescue") events = [outcomeEvent(item, "cooked"), ...events]
     return { ...item, state: "cooked" as const }
   })
+  const meals = current.meals ?? []
+  const nextMeals =
+    recipeId && recipeName
+      ? [{ id: uid("meal"), at: Date.now(), recipeId, recipeName, ingredientIds: ids }, ...meals]
+      : meals
   return {
     ...current,
     ingredients,
     events,
+    meals: nextMeals,
     rescues: current.rescues.map((row) =>
       row.ingredientId && ids.includes(row.ingredientId) && !row.claimedBy
         ? { ...row, claimedBy: YOU.name, claimedAt: Date.now() }
@@ -273,7 +280,7 @@ function reduce(current: KitchenState, action: KitchenAction): KitchenState {
     case "mark":
       return mark(current, action.id, action.kind)
     case "logMeal":
-      return logMeal(current, action.ids)
+      return logMeal(current, action.ids, action.recipeId, action.recipeName)
     case "host":
       return hostMeal(current)
     case "reset":
@@ -323,6 +330,7 @@ async function boot() {
   state = publishUrgent(state, Date.now(), { silent: true })
   const quiet = { ...state, toast: null }
   slot().state = quiet
+  if (spacetimeConfig()) return
   await saveRoom(quiet)
   if (!slot().timer) {
     slot().timer = setInterval(() => {
@@ -362,7 +370,14 @@ export function parseAction(value: unknown): KitchenAction | null {
     return { type: "mark", id: action.id, kind: action.kind }
   }
   if (action.type === "logMeal" && Array.isArray(action.ids)) {
-    return { type: "logMeal", ids: action.ids.filter((id) => typeof id === "string").slice(0, 20) }
+    const recipeId = typeof action.recipeId === "string" ? action.recipeId.slice(0, 80) : undefined
+    const recipeName = typeof action.recipeName === "string" ? action.recipeName.slice(0, 120) : undefined
+    return {
+      type: "logMeal",
+      ids: action.ids.filter((id) => typeof id === "string").slice(0, 20),
+      recipeId,
+      recipeName,
+    }
   }
   if (action.type === "host" || action.type === "reset") return { type: action.type }
   return null
