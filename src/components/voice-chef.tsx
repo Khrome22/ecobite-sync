@@ -46,6 +46,58 @@ function getRecognition() {
 const SILENT =
   "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="
 
+function englishVoice(voices: SpeechSynthesisVoice[]) {
+  const english = voices.filter((voice) => /^en([-_]|$)/i.test(voice.lang))
+  return (
+    english.find((voice) => voice.localService && /samantha|karen|moira|daniel|serena|alex/i.test(voice.name)) ??
+    english.find((voice) => voice.localService) ??
+    english.find((voice) => /samantha|karen|aria/i.test(voice.name)) ??
+    english[0] ??
+    null
+  )
+}
+
+function speakWithBrowser(text: string, hold: { current: SpeechSynthesisUtterance | null }) {
+  const synth = window.speechSynthesis
+  return new Promise<boolean>((resolve) => {
+    const start = () => {
+      const utterance = new SpeechSynthesisUtterance(text)
+      hold.current = utterance
+      utterance.rate = 0.98
+      utterance.volume = 1
+      utterance.voice = englishVoice(synth.getVoices())
+      let settled = false
+      const finish = (ok: boolean) => {
+        if (settled) return
+        settled = true
+        resolve(ok)
+      }
+      utterance.onend = () => finish(true)
+      utterance.onerror = () => finish(false)
+      synth.resume()
+      synth.speak(utterance)
+      window.setTimeout(() => {
+        if (!synth.speaking && !synth.pending) finish(false)
+      }, 1500)
+    }
+    window.setTimeout(() => {
+      if (synth.getVoices().length > 0) {
+        start()
+        return
+      }
+      const onVoices = () => {
+        synth.removeEventListener("voiceschanged", onVoices)
+        start()
+      }
+      synth.addEventListener("voiceschanged", onVoices)
+      window.setTimeout(() => {
+        synth.removeEventListener("voiceschanged", onVoices)
+        start()
+      }, 400)
+    }, 80)
+  })
+}
+
 function endsAfter(seconds: number) {
   return Date.now() + seconds * 1000
 }
@@ -72,6 +124,7 @@ export function VoiceChef() {
   const finishedRef = useRef(finished)
   const recRef = useRef<Rec | null>(null)
   const playerRef = useRef<HTMLAudioElement | null>(null)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const mounted = useRef(true)
   const skipEleven = useRef(false)
   const rang = useRef<number | null>(null)
@@ -136,22 +189,16 @@ export function VoiceChef() {
     }
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       setPhase("idle")
+      setMicNote("This browser has no speaking voice. Use the laptop that already talks.")
       return "silent"
     }
-    await new Promise<void>((resolve) => {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 0.98
-      const voices = window.speechSynthesis.getVoices()
-      utterance.voice =
-        voices.find((voice) => /en-US/i.test(voice.lang) && /natural|samantha|google|aria/i.test(voice.name)) ??
-        voices.find((voice) => /en-US|en_GB/i.test(voice.lang)) ??
-        null
-      utterance.onend = () => resolve()
-      utterance.onerror = () => resolve()
-      window.speechSynthesis.speak(utterance)
-    })
-    if (!mounted.current) return "browser"
+    const spoken = await speakWithBrowser(text, utteranceRef)
+    if (!mounted.current) return spoken ? "browser" : "silent"
     setPhase("idle")
+    if (!spoken) {
+      setMicNote("This browser stayed silent. Open Terminal and run: say hello")
+      return "silent"
+    }
     return "browser"
   }
 
@@ -339,7 +386,13 @@ export function VoiceChef() {
           All meals
         </Link>
         <p className="text-xs text-muted-foreground">
-          {voiceLine === "eleven" ? "Voice: ElevenLabs" : voiceLine === "browser" ? "Voice: this browser" : "Voice arms when you start"}
+          {voiceLine === "eleven"
+            ? "Voice: ElevenLabs"
+            : voiceLine === "browser"
+              ? "Voice: this browser"
+              : voiceLine === "silent"
+                ? "Voice: no sound"
+                : "Voice arms when you start"}
           {" · "}
           Space next · R repeat · M talk
         </p>
