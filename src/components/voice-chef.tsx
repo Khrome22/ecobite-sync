@@ -10,7 +10,7 @@ import { useKitchen } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
 type Phase = "idle" | "speaking" | "listening"
-type VoiceLine = "browser" | "eleven" | "silent" | null
+type VoiceLine = "browser" | "local" | "eleven" | "silent" | null
 
 type SpeechResult = {
   isFinal: boolean
@@ -124,6 +124,7 @@ export function VoiceChef() {
   const finishedRef = useRef(finished)
   const recRef = useRef<Rec | null>(null)
   const playerRef = useRef<HTMLAudioElement | null>(null)
+  const unlockedRef = useRef<Promise<void>>(Promise.resolve())
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const mounted = useRef(true)
   const skipEleven = useRef(false)
@@ -157,7 +158,9 @@ export function VoiceChef() {
 
   async function speak(text: string): Promise<VoiceLine> {
     stopListen()
-    stopSpeaking()
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel()
+    }
     setPhase("speaking")
     if (!skipEleven.current) {
       try {
@@ -168,21 +171,41 @@ export function VoiceChef() {
         })
         const type = response.headers.get("content-type") ?? ""
         if (response.ok && type.includes("audio")) {
+          const source = response.headers.get("x-ecobite-voice")
+          const line: VoiceLine = source === "local" ? "local" : "eleven"
           const url = URL.createObjectURL(await response.blob())
+          await unlockedRef.current
           const player = playerRef.current ?? new Audio()
           playerRef.current = player
+          player.volume = 1
+          player.onended = null
+          player.onerror = null
           player.src = url
           await new Promise<void>((resolve, reject) => {
-            player.onended = () => resolve()
-            player.onerror = () => reject(new Error("audio"))
-            void player.play().catch(reject)
+            let started = false
+            const finish = (ok: boolean) => {
+              URL.revokeObjectURL(url)
+              player.onended = null
+              player.onplaying = null
+              player.onerror = null
+              if (ok) resolve()
+              else reject(new Error("audio"))
+            }
+            player.onplaying = () => {
+              started = true
+              setMicNote("")
+              setVoiceLine(line)
+            }
+            player.onended = () => {
+              if (started) finish(true)
+            }
+            player.onerror = () => finish(false)
+            void player.play().catch(() => finish(false))
           })
-          if (!mounted.current) return "eleven"
+          if (!mounted.current) return line
           setPhase("idle")
-          return "eleven"
+          return line
         }
-        const data = (await response.json().catch(() => null)) as { reason?: string } | null
-        if (data?.reason === "no-key") skipEleven.current = true
       } catch {
         /* browser voice below */
       }
@@ -303,8 +326,13 @@ export function VoiceChef() {
 
   function unlock() {
     if (!playerRef.current) playerRef.current = new Audio()
-    playerRef.current.src = SILENT
-    void playerRef.current.play().catch(() => undefined)
+    const player = playerRef.current
+    player.volume = 1
+    player.src = SILENT
+    unlockedRef.current = player.play().then(
+      () => undefined,
+      () => undefined,
+    )
     if ("speechSynthesis" in window) {
       const blip = new SpeechSynthesisUtterance(" ")
       blip.volume = 0
@@ -388,11 +416,13 @@ export function VoiceChef() {
         <p className="text-xs text-muted-foreground">
           {voiceLine === "eleven"
             ? "Voice: ElevenLabs"
-            : voiceLine === "browser"
-              ? "Voice: this browser. If you hear nothing, open this page in Safari."
-              : voiceLine === "silent"
-                ? "Voice: no sound. Open this page in Safari."
-                : "Voice arms when you start"}
+            : voiceLine === "local"
+              ? "Voice: this computer"
+              : voiceLine === "browser"
+                ? "Voice: this browser. If you hear nothing, open this page in Safari."
+                : voiceLine === "silent"
+                  ? "Voice: no sound. Open this page in Safari."
+                  : "Voice arms when you start"}
           {" · "}
           Space next · R repeat · M talk
         </p>
@@ -440,7 +470,7 @@ export function VoiceChef() {
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{step.detail}</p>
               {!started && (
                 <p className="mt-4 max-w-xl text-sm text-muted-foreground">
-                  Start once, then keep your hands on the food. It reads the step and listens after each line. Ask how much, how hot, why, or name an ingredient you don&apos;t have. ElevenLabs speaks when a key is set; otherwise this browser does.
+                  Start once, then keep your hands on the food. It reads the step and listens after each line. Ask how much, how hot, why, or name an ingredient you don&apos;t have. The voice is a sound file, so it plays even when Chrome stays quiet.
                 </p>
               )}
 

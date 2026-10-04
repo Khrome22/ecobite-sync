@@ -18,7 +18,7 @@ Booth mode needs no API keys. Copy `.env.example` to `.env.local` and fill in ke
 | Variable | What it turns on |
 | --- | --- |
 | `GEMINI_API_KEY` | Sees food in a photo even when nothing is printed. Printed receipts are read without this key. Model defaults to `gemini-3.8-flash`. |
-| `ELEVENLABS_API_KEY` | The voice chef speaks with ElevenLabs Flash instead of the browser voice. |
+| `ELEVENLABS_API_KEY` | The voice chef speaks with ElevenLabs Flash. Without a key, the server makes a sound file and the page plays that, so Chrome does not have to use its own voice. |
 | `ELEVENLABS_VOICE_ID` | Optional. Defaults to Rachel (`21m00Tcm4TlvDq8ikWAM`). |
 
 The sidebar says which path is live. **Dark** in the sidebar (and in the phone header) switches to the night palette. The choice stays in this browser.
@@ -40,7 +40,7 @@ Restart `npm run dev` after saving. Gemini keys come from [Google AI Studio](htt
 
 1. **Scan.** List what’s left (or read the receipt / fridge sample, or upload a photo if Gemini is keyed). Each line gets an expiration estimate. Log it. Cooked rice is under 24 hours, so it shows up on the floor by itself.
 2. **Kitchen.** The shelf clocks are live. Tonight’s cook is already picked from whatever dies first.
-3. **Start hands-free** on the shakshuka. Tap Start so the browser is allowed to talk. Say “next”, or press Space. Ask “what if I don’t have feta?” ElevenLabs speaks when `ELEVENLABS_API_KEY` is set.
+3. **Start hands-free** on the shakshuka. Tap Start. The corner should say “Voice: this computer” or “Voice: ElevenLabs”, and you should hear the step. Say “next”, or press Space. Ask “what if I don’t have feta?”
 4. **Rescue.** Your under-24-hour food is already broadcast. Claim Sam’s bananas — a second screen on the same server sees the claim immediately. Within about a minute, Jordan, Mina, Alex, and Sam post on their own. Host the 9:15 skillet.
 5. **Impact.** Postgres rolls `waste_events` into logged versus wasted, carbon avoided, water saved, and money preserved. Today’s bar fills when you log, cook, claim, or toss.
 
@@ -64,7 +64,7 @@ The Impact page reads Postgres. Every log, cook, claim, and toss is a `waste_eve
 | Sustainability | The impact page. Household food kept, landfill CO2e, money. The caveat is part of the product. |
 | Actually Intelligent | Meal rank updates from clocks and claims. The coach answers substitutions, heat, and amounts for the step you are on. |
 | Gemini | `POST /api/vision` sends a receipt or fridge photo and expects structured JSON. Samples and pasted receipt text run with no key. |
-| ElevenLabs | `POST /api/speech` uses Flash (`eleven_flash_v2_5`) for the coach. The browser voice is the fallback, and the lines are written to be spoken. |
+| ElevenLabs | `POST /api/speech` uses Flash (`eleven_flash_v2_5`) when the key works. If it does not, the same route returns a wav from the Mac `say` voice or espeak, and the cook page plays that file. |
 | Spacetime | Offer, claim, and host are the room reducers for `bursley-floor-3`. The booth hosts that room in the server and pushes it over a live stream, so a claim updates every open screen at once. Items under 24 hours are broadcast when they are logged. Neighbor posts arrive on a timer. |
 | Tiger Data | `waste_events` is a real Postgres table the Impact page queries. `schema.sql` is the Tiger Data hypertable and continuous aggregate for the same rollup. |
 | Neon | `users`, `ingredients`, and `rescue_posts` in the same file. Profiles, shelf, recipe history. |
